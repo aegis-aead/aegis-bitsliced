@@ -112,8 +112,8 @@ aegis256_enc(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 static void
 aegis256_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 {
-    AesBlocks msg;
-    size_t    i;
+    AesBlock msg;
+    size_t   i;
 
     block_from_bytes(msg, src);
     for (i = 0; i < 4; i++) {
@@ -127,9 +127,9 @@ aegis256_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 static void
 aegis256_declast(uint8_t *const dst, const uint8_t *const src, size_t len, AesBlocks st)
 {
-    uint8_t   pad[RATE];
-    AesBlocks msg;
-    size_t    i;
+    uint8_t  pad[RATE];
+    AesBlock msg;
+    size_t   i;
 
     memset(pad, 0, sizeof pad);
     memcpy(pad, src, len);

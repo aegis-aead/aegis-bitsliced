@@ -121,8 +121,8 @@ aegis128l_enc(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 static void
 aegis128l_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 {
-    AesBlocks msg0, msg1;
-    size_t    i;
+    AesBlock msg0, msg1;
+    size_t   i;
 
     block_from_bytes(msg0, src);
     block_from_bytes(msg1, src + AES_BLOCK_LENGTH);
@@ -142,9 +142,9 @@ aegis128l_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 static void
 aegis128l_declast(uint8_t *const dst, const uint8_t *const src, size_t len, AesBlocks st)
 {
-    uint8_t   pad[RATE];
-    AesBlocks msg0, msg1;
-    size_t    i;
+    uint8_t  pad[RATE];
+    AesBlock msg0, msg1;
+    size_t   i;
 
     memset(pad, 0, sizeof pad);
     memcpy(pad, src, len);

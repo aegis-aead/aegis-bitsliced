@@ -18,7 +18,7 @@
     } while (0)
 
 typedef CRYPTO_ALIGN(16) uint32_t AesBlock[4];
-typedef CRYPTO_ALIGN(64) uint32_t AesBlocks[32];
+typedef CRYPTO_ALIGN(32) uint32_t AesBlocks[32];
 typedef uint8_t AesBlocksBytes[1024];
 
 static void

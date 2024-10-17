@@ -126,6 +126,7 @@ sbox(Sbox b)
     b[0] = t2 ^ b[5];
     b[3] = t2 ^ t13;
     b[1] = b[3] ^ b[5];
+    b[1] ^= 0xffffffff;
     t0 ^= b[6];
     b[5] = t7 & b[7];
     t14  = t4 ^ b[5];
@@ -136,15 +137,14 @@ sbox(Sbox b)
     b[5] = t15 ^ b[2];
     b[2] ^= t6;
     b[2] ^= t10;
+    b[2] ^= 0xffffffff;
     t14 ^= t11;
     t0 ^= t14;
     b[6] ^= t0;
-    b[7] = t1 ^ t0;
-    b[4] = t14 ^ b[3];
-    b[1] ^= 0xffffffff;
-    b[2] ^= 0xffffffff;
     b[6] ^= 0xffffffff;
+    b[7] = t1 ^ t0;
     b[7] ^= 0xffffffff;
+    b[4] = t14 ^ b[3];
 }
 
 static void

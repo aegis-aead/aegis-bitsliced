@@ -29,6 +29,19 @@ pub fn build(b: *std.Build) void {
         .source_dir = b.path("src/include"),
     });
 
+    const main_tests = b.addTest(.{
+        .root_source_file = b.path("src/test/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    main_tests.addIncludePath(b.path("src/include"));
+    main_tests.linkLibrary(lib);
+
+    const run_main_tests = b.addRunArtifact(main_tests);
+    const test_step = b.step("test", "Run library tests");
+    test_step.dependOn(&run_main_tests.step);
+
     const benchmark = b.addExecutable(.{
         .name = "benchmark",
         .root_source_file = b.path("src/test/benchmark.zig"),

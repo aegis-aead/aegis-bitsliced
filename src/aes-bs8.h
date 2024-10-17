@@ -284,7 +284,7 @@ pack(AesBlocks st)
 }
 
 static void
-unpack(uint32_t *st)
+unpack(AesBlocks st)
 {
     size_t i;
 

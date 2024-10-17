@@ -148,13 +148,15 @@ sbox(AesBlocks st)
 static void
 shiftrows(AesBlocks st)
 {
-    for (int i = 8; i < 16; i++) {
+    size_t i;
+
+    for (i = 8; i < 16; i++) {
         st[i] = ROTL32(st[i], 24);
     }
-    for (int i = 16; i < 24; i++) {
+    for (i = 16; i < 24; i++) {
         st[i] = ROTL32(st[i], 16);
     }
-    for (int i = 24; i < 32; i++) {
+    for (i = 24; i < 32; i++) {
         st[i] = ROTL32(st[i], 8);
     }
 }

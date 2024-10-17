@@ -21,6 +21,7 @@ typedef CRYPTO_ALIGN(16) uint32_t AesBlock[4];
 typedef CRYPTO_ALIGN(32) uint32_t AesBlocks[32];
 typedef uint32_t Sbox[8];
 typedef uint8_t  AesBlocksBytes[1024];
+typedef uint8_t  AesBlockBytes[16];
 
 static void
 sbox(Sbox b)
@@ -339,7 +340,7 @@ blocks_get(AesBlock s, const AesBlocks st, const size_t block)
 }
 
 static inline void
-block_from_bytes(AesBlock out, const AesBlocksBytes in)
+block_from_bytes(AesBlock out, const AesBlockBytes in)
 {
 #ifdef NAIIVE_LITTLE_ENDIAN
     memcpy(out, in, 16);
@@ -352,7 +353,7 @@ block_from_bytes(AesBlock out, const AesBlocksBytes in)
 }
 
 static inline void
-block_to_bytes(AesBlocksBytes out, const AesBlock in)
+block_to_bytes(AesBlockBytes out, const AesBlock in)
 {
 #ifdef NATIVE_LITTLE_ENDIAN
     memcpy(out, in, 16);

@@ -5,7 +5,7 @@ const testing = std.testing;
 
 const max_msg_len: usize = 1000;
 const max_ad_len: usize = 1000;
-const iterations = 500;
+const iterations = 1000;
 
 test "aegis-128l - encrypt_detached oneshot" {
     inline for ([_]usize{ 16, 32 }) |mac_len| {

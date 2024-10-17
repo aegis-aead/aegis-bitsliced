@@ -148,6 +148,16 @@ sbox(Sbox b)
 }
 
 static void
+sboxes(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 4; i++) {
+        sbox(st + 8 * i);
+    }
+}
+
+static void
 shiftrows(AesBlocks st)
 {
     size_t i;

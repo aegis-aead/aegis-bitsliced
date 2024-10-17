@@ -18,6 +18,7 @@ pub fn build(b: *std.Build) void {
     const source_files = &.{
         "src/common.c",
         "src/aegis128l.c",
+        "src/aegis256.c",
     };
     lib.addCSourceFiles(.{ .files = source_files });
     b.installArtifact(lib);

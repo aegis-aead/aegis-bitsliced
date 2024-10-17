@@ -352,7 +352,7 @@ blocks_get(AesBlock s, const AesBlocks st, const size_t block)
 static inline void
 block_from_bytes(AesBlock out, const AesBlockBytes in)
 {
-#ifdef NAIIVE_LITTLE_ENDIAN
+#ifdef NATIVE_LITTLE_ENDIAN
     memcpy(out, in, 16);
 #else
     out[0] = LOAD32_LE(in + 4 * 0);

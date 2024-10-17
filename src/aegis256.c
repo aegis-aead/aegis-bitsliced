@@ -62,7 +62,7 @@ aegis256_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     int            i;
 
     block_from_bytes(k0, key);
-    block_from_bytes(k0, key + 16);
+    block_from_bytes(k1, key + 16);
     block_from_bytes(n0, nonce);
     block_from_bytes(n1, nonce + 16);
     block_xor(k0n0, k0, n0);

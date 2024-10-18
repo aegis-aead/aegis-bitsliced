@@ -27,37 +27,25 @@ aegis_round(AesBlocks st)
     unpack(st1);
 
     for (i = 0; i < 8; i++) {
-        st[word_idx(i, 0)] ^= st1[word_idx((i - 1) % 8, 0)];
-        st[word_idx(i, 1)] ^= st1[word_idx((i - 1) % 8, 1)];
-        st[word_idx(i, 2)] ^= st1[word_idx((i - 1) % 8, 2)];
-        st[word_idx(i, 3)] ^= st1[word_idx((i - 1) % 8, 3)];
-        st[word_idx(i, 4)] ^= st1[word_idx((i - 1) % 8, 4)];
-        st[word_idx(i, 5)] ^= st1[word_idx((i - 1) % 8, 5)];
-        st[word_idx(i, 6)] ^= st1[word_idx((i - 1) % 8, 6)];
-        st[word_idx(i, 7)] ^= st1[word_idx((i - 1) % 8, 7)];
+        size_t j;
+
+        for (j = 0; j < 4 * 2; j++) {
+            st[word_idx(i, j)] ^= st1[word_idx((i - 1) % 8, j)];
+        }
     }
 }
 
 static inline void
 aegis_absorb_rate(AesBlocks st, const AesBlock m0, const AesBlock m1)
 {
-    st[word_idx(0, 0)] ^= m0[0];
-    st[word_idx(0, 1)] ^= m0[1];
-    st[word_idx(0, 2)] ^= m0[2];
-    st[word_idx(0, 3)] ^= m0[3];
-    st[word_idx(0, 4)] ^= m0[4];
-    st[word_idx(0, 5)] ^= m0[5];
-    st[word_idx(0, 6)] ^= m0[6];
-    st[word_idx(0, 7)] ^= m0[7];
+    size_t i;
 
-    st[word_idx(4, 0)] ^= m1[0];
-    st[word_idx(4, 1)] ^= m1[1];
-    st[word_idx(4, 2)] ^= m1[2];
-    st[word_idx(4, 3)] ^= m1[3];
-    st[word_idx(4, 4)] ^= m1[4];
-    st[word_idx(4, 5)] ^= m1[5];
-    st[word_idx(4, 6)] ^= m1[6];
-    st[word_idx(4, 7)] ^= m1[7];
+    for (i = 0; i < 4 * 2; i++) {
+        st[word_idx(0, i)] ^= m0[i];
+    }
+    for (i = 0; i < 4 * 2; i++) {
+        st[word_idx(4, i)] ^= m1[i];
+    }
 }
 
 static inline void

@@ -105,7 +105,7 @@ fn bench_aegis128x2() !void {
 }
 
 pub fn main() !void {
-    try bench_aegis128x2();
     try bench_aegis128l();
+    try bench_aegis128x2();
     try bench_aegis256();
 }

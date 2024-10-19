@@ -65,7 +65,7 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     const AesBlock ctx = { 0x00000100, 0x00000000, 0x00000000, 0x00000000,
                            0x00000101, 0x00000000, 0x00000000, 0x00000000 };
     AesBlock       k, n, kn, kc0, kc1;
-    int            j;
+    int            i;
 
     block_from_broadcast(k, key);
     block_from_broadcast(n, nonce);
@@ -82,7 +82,7 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     blocks_put(st, kc1, 6);
     blocks_put(st, kc0, 7);
 
-    for (j = 0; j < 10; j++) {
+    for (i = 0; i < 10; i++) {
         size_t j;
 
         for (j = 0; j < 4 * 2; j++) {

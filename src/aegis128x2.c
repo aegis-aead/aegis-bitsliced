@@ -189,14 +189,10 @@ aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
     tmp[1] = (uint32_t) (mlen >> (32 - 3));
     tmp[2] = (uint32_t) (adlen << 3);
     tmp[3] = (uint32_t) (adlen >> (32 - 3));
-
-    tmp[0] ^= st[word_idx(2, 0)];
-    tmp[1] ^= st[word_idx(2, 1)];
-    tmp[2] ^= st[word_idx(2, 2)];
-    tmp[3] ^= st[word_idx(2, 3)];
-
     memcpy(tmp + 4, tmp, 4 * sizeof(uint32_t));
-
+    for (i = 0; i < 4 * 2; i++) {
+        tmp[i] ^= st[word_idx(2, i)];
+    }
     for (i = 0; i < 7; i++) {
         aegis_update(st, tmp, tmp);
     }

@@ -66,6 +66,7 @@ aegis256_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     block_xor(k0c0, k0, c0);
     block_xor(k1c1, k1, c1);
 
+    memset(st, 0, sizeof(AesBlocks));
     blocks_put(st, k0n0, 0);
     blocks_put(st, k1n1, 1);
     blocks_put(st, c1, 2);

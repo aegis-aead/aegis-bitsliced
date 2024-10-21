@@ -1,5 +1,5 @@
-#ifndef aes_bs16_H
-#define aes_bs16_H
+#ifndef aes_bs8x2_H
+#define aes_bs8x2_H
 
 #include <stddef.h>
 #include <stdint.h>

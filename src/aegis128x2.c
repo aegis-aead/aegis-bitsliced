@@ -8,7 +8,7 @@
 #include "include/aegis.h"
 #include "include/aegis128x2.h"
 
-#include "aes-bs16.h"
+#include "aes-bs8x2.h"
 
 #define RATE      64
 #define ALIGNMENT 32

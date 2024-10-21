@@ -14,11 +14,11 @@ ARM Cortex A53:
 | AEGIS-128L (bitsliced)    |          210 |
 | AEGIS-128L (unprotected)  |          427 |
 
-WebAssembly (Apple M1):
+WebAssembly (Apple M1, baseline+simd128):
 
 | Algorithm                            | Speed (Mb/s) |
 | :----------------------------------- | -----------: |
 | AES-128-GCM (rust-crypto, fixsliced) |          472 |
 | AES-128-GCM (unprotected)            |         1040 |
-| AEGIS-128L (bitsliced)               |         1299 |
+| AEGIS-128L (bitsliced)               |         2215 |
 | AEGIS-128L (unprotected)             |         4232 |

@@ -14,6 +14,15 @@ ARM Cortex A53:
 | AEGIS-128L (bitsliced)    |          210 |
 | AEGIS-128L (unprotected)  |          427 |
 
+Spacemit X60 RISC-V:
+
+| Algorithm                              | Speed (Mb/s) |
+| :------------------------------------- | -----------: |
+| AES-128-GCM (OpenSSL 3.3, unprotected) |          223 |
+| AEGIS-128L (bitsliced)                 |          193 |
+| AEGIS-128X2 (bitsliced)                |          254 |
+| AEGIS-128L (unprotected)               |          198 |
+
 WebAssembly (Apple M1, baseline+simd128):
 
 | Algorithm                            | Speed (Mb/s) |

@@ -14,7 +14,7 @@ ARM Cortex A53:
 | AEGIS-128L (bitsliced)    |          210 |
 | AEGIS-128L (unprotected)  |          427 |
 
-Spacemit X60 RISC-V:
+Spacemit X60 RISC-V without AES extensions:
 
 | Algorithm                              | Speed (Mb/s) |
 | :------------------------------------- | -----------: |

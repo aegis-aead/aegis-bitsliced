@@ -4,7 +4,7 @@ Protected implementations of the [AEGIS authenticated encryption algorithms](htt
 
 Side channels are mitigated using the [barrel-shiftrows](https://eprint.iacr.org/2020/1123.pdf) bitsliced representation recently introduced by Alexandre Adomnicai and Thomas Peyrin, which has proven to be a good fit for all AEGIS-128* variants.
 
-With this representation, AEGIS-128L consistently outperforms AES128-GCM in terms of speed.
+With this representation, AEGIS-128* consistently outperforms AES128-GCM in terms of speed.
 
 ARM Cortex A53:
 

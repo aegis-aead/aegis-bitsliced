@@ -8,11 +8,11 @@ With this representation, AEGIS-128* consistently outperforms AES128-GCM in term
 
 ARM Cortex A53:
 
-| Algorithm                 | Speed (Mb/s) |
-| :------------------------ | -----------: |
-| AES-128-GCM (OpenSSL 3.3) |          129 |
-| AEGIS-128L (bitsliced)    |          210 |
-| AEGIS-128L (unprotected)  |          427 |
+| Algorithm                            | Speed (Mb/s) |
+| :----------------------------------- | -----------: |
+| AES-128-GCM (OpenSSL 3.3, bitsliced) |          129 |
+| AEGIS-128L (bitsliced)               |          210 |
+| AEGIS-128L (libaegis, unprotected)   |          427 |
 
 Spacemit X60 RISC-V without AES extensions:
 
@@ -21,13 +21,13 @@ Spacemit X60 RISC-V without AES extensions:
 | AES-128-GCM (OpenSSL 3.3, unprotected) |          223 |
 | AEGIS-128X2 (bitsliced)                |          254 |
 | AEGIS-128L (bitsliced)                 |          193 |
-| AEGIS-128L (unprotected)               |          198 |
+| AEGIS-128L (libaegis, unprotected)     |          198 |
 
 WebAssembly (Apple M1, baseline+simd128):
 
 | Algorithm                            | Speed (Mb/s) |
 | :----------------------------------- | -----------: |
 | AES-128-GCM (rust-crypto, fixsliced) |          472 |
-| AES-128-GCM (unprotected)            |         1040 |
+| AES-128-GCM (zig, unprotected)       |         1040 |
 | AEGIS-128L (bitsliced)               |         2215 |
-| AEGIS-128L (unprotected)             |         4232 |
+| AEGIS-128L (libaegis, unprotected)   |         4232 |

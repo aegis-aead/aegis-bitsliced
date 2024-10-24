@@ -33,6 +33,20 @@ aegis_round(AesBlocks st)
     }
 }
 
+static void
+aegis_round_packed(AesBlocks st, const AesBlocks constant_input)
+{
+    AesBlocks st1;
+
+    memcpy(st1, st, sizeof(AesBlocks));
+    sboxes(st1);
+    shiftrows(st1);
+    mixcolumns(st1);
+    blocks_rotr(st1);
+    blocks_xor(st, st1);
+    blocks_xor(st, constant_input);
+}
+
 static inline void
 aegis_absorb_rate(AesBlocks st, const AesBlock m0, const AesBlock m1)
 {
@@ -47,6 +61,24 @@ aegis_absorb_rate(AesBlocks st, const AesBlock m0, const AesBlock m1)
     st[word_idx(4, 3)] ^= m1[3];
 }
 
+static void
+aegis_pack_constant_inputs(AesBlocks st, const AesBlock m0, const AesBlock m1)
+{
+    memset(st, 0, sizeof(AesBlocks));
+
+    st[word_idx(0, 0)] = m0[0];
+    st[word_idx(0, 1)] = m0[1];
+    st[word_idx(0, 2)] = m0[2];
+    st[word_idx(0, 3)] = m0[3];
+
+    st[word_idx(4, 0)] = m1[0];
+    st[word_idx(4, 1)] = m1[1];
+    st[word_idx(4, 2)] = m1[2];
+    st[word_idx(4, 3)] = m1[3];
+
+    pack(st);
+}
+
 static inline void
 aegis_update(AesBlocks st, const AesBlock m0, const AesBlock m1)
 {
@@ -57,6 +89,7 @@ aegis_update(AesBlocks st, const AesBlock m0, const AesBlock m1)
 static void
 aegis128l_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 {
+    AesBlocks      constant_input;
     const AesBlock c0 = { 0x02010100, 0x0d080503, 0x59372215, 0x6279e990 };
     const AesBlock c1 = { 0x55183ddb, 0xf12fc26d, 0x42311120, 0xdd28b573 };
     AesBlock       k, n, kn, kc0, kc1;
@@ -77,9 +110,12 @@ aegis128l_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     blocks_put(st, kc1, 6);
     blocks_put(st, kc0, 7);
 
+    aegis_pack_constant_inputs(constant_input, n, k);
+    pack(st);
     for (i = 0; i < 10; i++) {
-        aegis_update(st, n, k);
+        aegis_round_packed(st, constant_input);
     }
+    unpack(st);
 }
 
 static void
@@ -171,8 +207,9 @@ aegis128l_declast(uint8_t *const dst, const uint8_t *const src, size_t len, AesB
 static void
 aegis128l_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks st)
 {
-    AesBlock tmp;
-    size_t   i;
+    AesBlocks constant_input;
+    AesBlock  tmp;
+    size_t    i;
 
     tmp[0] = (uint32_t) (mlen << 3);
     tmp[1] = (uint32_t) (mlen >> (32 - 3));
@@ -184,9 +221,12 @@ aegis128l_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks 
     tmp[2] ^= st[word_idx(2, 2)];
     tmp[3] ^= st[word_idx(2, 3)];
 
+    aegis_pack_constant_inputs(constant_input, tmp, tmp);
+    pack(st);
     for (i = 0; i < 7; i++) {
-        aegis_update(st, tmp, tmp);
+        aegis_round_packed(st, constant_input);
     }
+    unpack(st);
 
     if (maclen == 16) {
         for (i = 0; i < 4; i++) {

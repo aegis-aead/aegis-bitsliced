@@ -394,4 +394,14 @@ block_xor(AesBlock out, const AesBlock a, const AesBlock b)
     out[3] = a[3] ^ b[3];
 }
 
+static inline void
+blocks_xor(AesBlocks a, const AesBlocks b)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i++) {
+        a[i] ^= b[i];
+    }
+}
+
 #endif

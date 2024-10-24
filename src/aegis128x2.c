@@ -87,13 +87,11 @@ aegis_update(AesBlocks st, const AesBlock m0, const AesBlock m1)
 static void
 aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 {
-    AesBlocks      constant_ctx_mask;
-    const AesBlock c0  = { 0x02010100, 0x0d080503, 0x59372215, 0x6279e990,
-                           0x02010100, 0x0d080503, 0x59372215, 0x6279e990 };
-    const AesBlock c1  = { 0x55183ddb, 0xf12fc26d, 0x42311120, 0xdd28b573,
-                           0x55183ddb, 0xf12fc26d, 0x42311120, 0xdd28b573 };
-    const AesBlock ctx = { 0x00000100, 0x00000000, 0x00000000, 0x00000000,
-                           0x00000101, 0x00000000, 0x00000000, 0x00000000 };
+
+    const AesBlock c0 = { 0x02010100, 0x0d080503, 0x59372215, 0x6279e990,
+                          0x02010100, 0x0d080503, 0x59372215, 0x6279e990 };
+    const AesBlock c1 = { 0x55183ddb, 0xf12fc26d, 0x42311120, 0xdd28b573,
+                          0x55183ddb, 0xf12fc26d, 0x42311120, 0xdd28b573 };
     AesBlock       k, n, kn, kc0, kc1;
     int            i;
 
@@ -112,13 +110,13 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     blocks_put(st, kc1, 6);
     blocks_put(st, kc0, 7);
 
-    memset(constant_ctx_mask, 0, sizeof constant_ctx_mask);
-    blocks_put(constant_ctx_mask, ctx, 3);
-    blocks_put(constant_ctx_mask, ctx, 7);
-    pack(constant_ctx_mask);
-
 #ifdef KEEP_STATE_BITSLICED
     {
+        const AesBlocks constant_ctx_mask = {
+            0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0,  0, 0, 0, 0,
+            0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 17, 0, 0, 0, 0,
+            0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,  0, 0,
+        };
         AesBlocks constant_input;
 
         aegis_pack_constant_input(constant_input, n, k);
@@ -129,9 +127,19 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
         }
     }
 #else
-    for (i = 0; i < 10; i++) {
-        blocks_xor(st, constant_ctx_mask);
-        aegis_update(st, n, k);
+    {
+        const AesBlock ctx = { 0x00000100, 0x00000000, 0x00000000, 0x00000000,
+                               0x00000101, 0x00000000, 0x00000000, 0x00000000 };
+
+        for (i = 0; i < 10; i++) {
+            size_t j;
+
+            for (j = 0; j < 4 * 2; j++) {
+                st[word_idx(3, j)] ^= ctx[j];
+                st[word_idx(7, j)] ^= ctx[j];
+            }
+            aegis_update(st, n, k);
+        }
     }
 #endif
 }

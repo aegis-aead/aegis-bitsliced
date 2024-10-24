@@ -8,6 +8,8 @@
 
 #include "include/aegis.h"
 
+/* #define KEEP_STATE_BITSLICED */
+
 #if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_AMD64)
 #    define NATIVE_LITTLE_ENDIAN
 #endif

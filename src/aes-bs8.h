@@ -332,6 +332,16 @@ word_idx(const size_t block, const size_t word)
 }
 
 static inline void
+blocks_rotr(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i++) {
+        st[i] = (st[i] & 0xfefefefe) >> 1 | (st[i] & 0x01010101) << 7;
+    }
+}
+
+static inline void
 blocks_put(AesBlocks st, const AesBlock s, const size_t block)
 {
     st[word_idx(block, 0)] = s[0];

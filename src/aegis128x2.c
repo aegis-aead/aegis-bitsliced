@@ -87,7 +87,6 @@ aegis_update(AesBlocks st, const AesBlock m0, const AesBlock m1)
 static void
 aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 {
-    AesBlocks      constant_input;
     AesBlocks      constant_ctx_mask;
     const AesBlock c0  = { 0x02010100, 0x0d080503, 0x59372215, 0x6279e990,
                            0x02010100, 0x0d080503, 0x59372215, 0x6279e990 };
@@ -118,12 +117,23 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     blocks_put(constant_ctx_mask, ctx, 7);
     pack(constant_ctx_mask);
 
-    aegis_pack_constant_input(constant_input, n, k);
-    pack(st);
+#ifdef KEEP_STATE_BITSLICED
+    {
+        AesBlocks constant_input;
+
+        aegis_pack_constant_input(constant_input, n, k);
+        pack(st);
+        for (i = 0; i < 10; i++) {
+            blocks_xor(st, constant_ctx_mask);
+            aegis_round_packed(st, constant_input);
+        }
+    }
+#else
     for (i = 0; i < 10; i++) {
         blocks_xor(st, constant_ctx_mask);
-        aegis_round_packed(st, constant_input);
+        aegis_update(st, n, k);
     }
+#endif
 }
 
 static void
@@ -215,9 +225,8 @@ aegis128x2_declast(uint8_t *const dst, const uint8_t *const src, size_t len, Aes
 static void
 aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks st)
 {
-    AesBlocks constant_input;
-    AesBlock  tmp;
-    size_t    i;
+    AesBlock tmp;
+    size_t   i;
 
     tmp[0] = (uint32_t) (mlen << 3);
     tmp[1] = (uint32_t) (mlen >> (32 - 3));
@@ -227,12 +236,24 @@ aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
     for (i = 0; i < 4 * 2; i++) {
         tmp[i] ^= st[word_idx(2, i)];
     }
-    aegis_pack_constant_input(constant_input, tmp, tmp);
-    pack(st);
-    for (i = 0; i < 7; i++) {
-        aegis_round_packed(st, constant_input);
+
+#ifdef KEEP_STATE_BITSLICED
+    {
+        AesBlocks constant_input;
+
+        aegis_pack_constant_input(constant_input, tmp, tmp);
+        pack(st);
+        for (i = 0; i < 7; i++) {
+            aegis_round_packed(st, constant_input);
+        }
+        unpack(st);
     }
-    unpack(st);
+#else
+    for (i = 0; i < 7; i++) {
+        aegis_update(st, tmp, tmp);
+    }
+#endif
+
     if (maclen == 16) {
         for (i = 0; i < 4; i++) {
             tmp[i] = st[word_idx(0, i)] ^ st[word_idx(1, i)] ^ st[word_idx(2, i)] ^

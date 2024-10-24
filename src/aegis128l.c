@@ -20,9 +20,7 @@ aegis_round(AesBlocks st)
 
     memcpy(st1, st, sizeof(AesBlocks));
     pack(st1);
-    sboxes(st1);
-    shiftrows(st1);
-    mixcolumns(st1);
+    aes_round(st1);
     unpack(st1);
 
     for (i = 0; i < 8; i++) {
@@ -39,9 +37,7 @@ aegis_round_packed(AesBlocks st, const AesBlocks constant_input)
     AesBlocks st1;
 
     memcpy(st1, st, sizeof(AesBlocks));
-    sboxes(st1);
-    shiftrows(st1);
-    mixcolumns(st1);
+    aes_round2(st1);
     blocks_rotr(st1);
     blocks_xor(st, st1);
     blocks_xor(st, constant_input);
@@ -62,7 +58,7 @@ aegis_pack_constant_input(AesBlocks st, const AesBlock m0, const AesBlock m1)
     st[word_idx(4, 2)] = m1[2];
     st[word_idx(4, 3)] = m1[3];
 
-    pack(st);
+    pack2(st);
 }
 
 static inline void
@@ -114,11 +110,11 @@ aegis128l_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
         AesBlocks constant_input;
 
         aegis_pack_constant_input(constant_input, n, k);
-        pack(st);
+        pack2(st);
         for (i = 0; i < 10; i++) {
             aegis_round_packed(st, constant_input);
         }
-        unpack(st);
+        unpack2(st);
     }
 #else
     for (i = 0; i < 10; i++) {
@@ -229,7 +225,7 @@ aegis128l_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks 
     tmp[2] ^= st[word_idx(2, 2)];
     tmp[3] ^= st[word_idx(2, 3)];
 
-#ifdef KEEP_STATE_BITSLICED
+#ifdef KEEP_STATE_BITSLICEDx
     {
         AesBlocks constant_input;
 

@@ -289,6 +289,14 @@ mixcolumns(AesBlocks st)
 }
 
 static void
+aes_round(AesBlocks st)
+{
+    sboxes(st);
+    shiftrows(st);
+    mixcolumns(st);
+}
+
+static void
 pack_(AesBlocksBases st)
 {
     size_t i;

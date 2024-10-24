@@ -8,7 +8,11 @@
 
 #include "include/aegis.h"
 
-/* #define KEEP_STATE_BITSLICED */
+/* Keep the state in bitsliced representation during initialization and finalization */
+#define KEEP_STATE_BITSLICED
+/* Force the compiler to emit different versions of functions that aren't always inlined, in order
+ * to improve register allocation */
+#define ALT_REGISTER_ALLOCATION
 
 #if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_AMD64)
 #    define NATIVE_LITTLE_ENDIAN

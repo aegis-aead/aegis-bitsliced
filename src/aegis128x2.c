@@ -21,9 +21,7 @@ aegis_round(AesBlocks st)
 
     memcpy(st1, st, sizeof(AesBlocks));
     pack(st1);
-    sboxes(st1);
-    shiftrows(st1);
-    mixcolumns(st1);
+    aes_round(st1);
     unpack(st1);
 
     for (i = 0; i < 8; i++) {
@@ -41,9 +39,7 @@ aegis_round_packed(AesBlocks st, const AesBlocks constant_input)
     AesBlocks st1;
 
     memcpy(st1, st, sizeof(AesBlocks));
-    sboxes(st1);
-    shiftrows(st1);
-    mixcolumns(st1);
+    aes_round(st1);
     blocks_rotr(st1);
     blocks_xor(st, st1);
     blocks_xor(st, constant_input);

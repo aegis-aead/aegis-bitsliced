@@ -10,8 +10,8 @@
 
 /* Keep the state in bitsliced representation during initialization and finalization */
 #define KEEP_STATE_BITSLICED
-/* Force the compiler to emit different versions of functions that aren't always inlined, in order
- * to improve register allocation */
+/* Force the compiler to emit different versions of functions that aren't always inlined (ex: pack)
+ in order to avoid performance regressions when KEEP_STATE_BITSLICED is set */
 #define ALT_REGISTER_ALLOCATION
 
 #if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_AMD64)

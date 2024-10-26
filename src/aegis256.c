@@ -29,6 +29,10 @@ aegis_round(AesBlocks st)
         st[word_idx(i, 2)] ^= st1[word_idx((i - 1) % 6, 2)];
         st[word_idx(i, 3)] ^= st1[word_idx((i - 1) % 6, 3)];
     }
+
+    (void) pack2;
+    (void) unpack2;
+    (void) aes_round2;
 }
 
 static inline void

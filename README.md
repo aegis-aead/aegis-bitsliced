@@ -37,6 +37,7 @@ ARM Cortex M4 (Flipper Zero)
 | Algorithm                                | Speed (Mb/s) |  CpB |
 | :--------------------------------------- | -----------: | ---: |
 | AES-128-GCM (fixsliced, protected GHASH) |         2.08 |  246 |
+| AES-128-GCM (unprotected, 4 LUTs)        |         2.46 |  208 |
 | AES-128-GCM (fixsliced, 4-bit LUT GHASH) |         2.69 |  190 |
 | AEGIS-128L (bitsliced)                   |         2.77 |  185 |
 | AEGIS-128L (unprotected)                 |         8.28 |   62 |

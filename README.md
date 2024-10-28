@@ -31,3 +31,13 @@ WebAssembly (Apple M1, baseline+simd128):
 | AES-128-GCM (zig, unprotected)       |         1040 |
 | AEGIS-128L (bitsliced)               |         2241 |
 | AEGIS-128L (libaegis, unprotected)   |         4232 |
+
+ARM Cortex M4 (Flipper Zero)
+
+| Algorithm                                | Speed (Mb/s) |  CpB |
+| :--------------------------------------- | -----------: | ---: |
+| AES-128-GCM (fixsliced, protected GHASH) |         2.08 |  246 |
+| AES-128-GCM (fixsliced, 4-bit LUT GHASH) |         2.69 |  190 |
+| AEGIS-128L (bitsliced)                   |         2.77 |  185 |
+| AEGIS-128L (unprotected)                 |         8.28 |   62 |
+| AES-128-GCM (hardware, via AHB2 bus)     |        11.23 |   46 |

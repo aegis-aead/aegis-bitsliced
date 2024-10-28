@@ -32,7 +32,7 @@ WebAssembly (Apple M1, baseline+simd128):
 | AEGIS-128L (bitsliced)               |         2241 |
 | AEGIS-128L (libaegis, unprotected)   |         4232 |
 
-ARM Cortex M4 (Flipper Zero)
+ARM Cortex M4 (Flipper Zero):
 
 | Algorithm                                | Speed (Mb/s) |  CpB |
 | :--------------------------------------- | -----------: | ---: |

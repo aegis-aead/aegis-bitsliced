@@ -303,6 +303,35 @@ aegis128l_abytes_max(void)
     return aegis128l_ABYTES_MAX;
 }
 
+static void
+aegis128l_absorb_ad(AesBlocks st, CRYPTO_ALIGN(ALIGNMENT) uint8_t tmp[RATE], const uint8_t *ad,
+                    const size_t adlen)
+{
+    size_t i;
+
+    if (adlen > 2 * RATE) {
+        pack(st);
+        for (i = 0; i + RATE <= adlen; i += RATE) {
+            aegis128l_absorb_packed(ad + i, st);
+        }
+        if (adlen % RATE) {
+            memset(tmp, 0, RATE);
+            memcpy(tmp, ad + i, adlen % RATE);
+            aegis128l_absorb_packed(tmp, st);
+        }
+        unpack(st);
+    } else {
+        for (i = 0; i + RATE <= adlen; i += RATE) {
+            aegis128l_absorb(ad + i, st);
+        }
+        if (adlen % RATE) {
+            memset(tmp, 0, RATE);
+            memcpy(tmp, ad + i, adlen % RATE);
+            aegis128l_absorb(tmp, st);
+        }
+    }
+}
+
 int
 aegis128l_encrypt_detached(uint8_t *c, uint8_t *mac, size_t maclen, const uint8_t *m, size_t mlen,
                            const uint8_t *ad, size_t adlen, const uint8_t *npub, const uint8_t *k)
@@ -314,26 +343,8 @@ aegis128l_encrypt_detached(uint8_t *c, uint8_t *mac, size_t maclen, const uint8_
 
     aegis128l_init(k, npub, state);
 
-    if (adlen > 2 * RATE) {
-        pack(state);
-        for (i = 0; i + RATE <= adlen; i += RATE) {
-            aegis128l_absorb_packed(ad + i, state);
-        }
-        if (adlen % RATE) {
-            memset(src, 0, RATE);
-            memcpy(src, ad + i, adlen % RATE);
-            aegis128l_absorb_packed(src, state);
-        }
-        unpack(state);
-    } else {
-        for (i = 0; i + RATE <= adlen; i += RATE) {
-            aegis128l_absorb(ad + i, state);
-        }
-        if (adlen % RATE) {
-            memset(src, 0, RATE);
-            memcpy(src, ad + i, adlen % RATE);
-            aegis128l_absorb(src, state);
-        }
+    if (adlen > 0) {
+        aegis128l_absorb_ad(state, src, ad, adlen);
     }
     for (i = 0; i + RATE <= mlen; i += RATE) {
         aegis128l_enc(c + i, m + i, state);
@@ -371,26 +382,8 @@ aegis128l_decrypt_detached(uint8_t *m, const uint8_t *c, size_t clen, const uint
 
     aegis128l_init(k, npub, state);
 
-    if (adlen > 2 * RATE) {
-        pack(state);
-        for (i = 0; i + RATE <= adlen; i += RATE) {
-            aegis128l_absorb_packed(ad + i, state);
-        }
-        if (adlen % RATE) {
-            memset(src, 0, RATE);
-            memcpy(src, ad + i, adlen % RATE);
-            aegis128l_absorb_packed(src, state);
-        }
-        unpack(state);
-    } else {
-        for (i = 0; i + RATE <= adlen; i += RATE) {
-            aegis128l_absorb(ad + i, state);
-        }
-        if (adlen % RATE) {
-            memset(src, 0, RATE);
-            memcpy(src, ad + i, adlen % RATE);
-            aegis128l_absorb(src, state);
-        }
+    if (adlen > 0) {
+        aegis128l_absorb_ad(state, src, ad, adlen);
     }
     if (m != NULL) {
         for (i = 0; i + RATE <= mlen; i += RATE) {

@@ -244,11 +244,11 @@ aegis128l_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks 
         AesBlocks constant_input;
 
         aegis_pack_constant_input(constant_input, tmp, tmp);
-        pack(st);
+        pack2(st);
         for (i = 0; i < 7; i++) {
             aegis_round_packed(st, constant_input);
         }
-        unpack(st);
+        unpack2(st);
     }
 #else
     for (i = 0; i < 7; i++) {
@@ -310,7 +310,7 @@ aegis128l_absorb_ad(AesBlocks st, CRYPTO_ALIGN(ALIGNMENT) uint8_t tmp[RATE], con
     size_t i;
 
     if (adlen > 2 * RATE) {
-        pack(st);
+        pack2(st);
         for (i = 0; i + RATE <= adlen; i += RATE) {
             aegis128l_absorb_packed(ad + i, st);
         }
@@ -319,7 +319,7 @@ aegis128l_absorb_ad(AesBlocks st, CRYPTO_ALIGN(ALIGNMENT) uint8_t tmp[RATE], con
             memcpy(tmp, ad + i, adlen % RATE);
             aegis128l_absorb_packed(tmp, st);
         }
-        unpack(st);
+        unpack2(st);
         return;
     }
     for (i = 0; i + RATE <= adlen; i += RATE) {

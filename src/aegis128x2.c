@@ -325,8 +325,7 @@ aegis128x2_abytes_max(void)
 }
 
 static void
-aegis128x2_absorb_ad(AesBlocks st, CRYPTO_ALIGN(ALIGNMENT) uint8_t tmp[RATE], const uint8_t *ad,
-                     const size_t adlen)
+aegis128x2_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const size_t adlen)
 {
     size_t i;
 

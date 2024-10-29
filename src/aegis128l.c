@@ -320,15 +320,15 @@ aegis128l_absorb_ad(AesBlocks st, CRYPTO_ALIGN(ALIGNMENT) uint8_t tmp[RATE], con
             aegis128l_absorb_packed(tmp, st);
         }
         unpack(st);
-    } else {
-        for (i = 0; i + RATE <= adlen; i += RATE) {
-            aegis128l_absorb(ad + i, st);
-        }
-        if (adlen % RATE) {
-            memset(tmp, 0, RATE);
-            memcpy(tmp, ad + i, adlen % RATE);
-            aegis128l_absorb(tmp, st);
-        }
+        return;
+    }
+    for (i = 0; i + RATE <= adlen; i += RATE) {
+        aegis128l_absorb(ad + i, st);
+    }
+    if (adlen % RATE) {
+        memset(tmp, 0, RATE);
+        memcpy(tmp, ad + i, adlen % RATE);
+        aegis128l_absorb(tmp, st);
     }
 }
 

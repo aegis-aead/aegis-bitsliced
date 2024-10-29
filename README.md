@@ -40,7 +40,7 @@ ARM Cortex M4 (Flipper Zero):
 | AES-128-GCM (unprotected, 4 LUTs)        |         2.46 |  208 |
 | AES-128-GCM (fixsliced, 4-bit LUT GHASH) |         2.69 |  190 |
 | AEGIS-128L (bitsliced)                   |         2.77 |  185 |
-| AEGIS-128L (unprotected)                 |         8.28 |   62 |
+| AEGIS-128L (libaegis, unprotected)       |         8.28 |   62 |
 | AES-128-GCM (hardware, via AHB2 bus)     |        11.23 |   46 |
 
 ## Notes on bitslicing AEGIS
@@ -51,9 +51,7 @@ The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_k
 
 In the bitsliced representation, rotating the state only requires a bit rotation across all bytes.
 
-In the initialization and finalization functions of AEGIS-128L, the state can be maintained in the bitsliced representation until the final update round.
-
-Although currently not implemented, the state could also remain in bitsliced form during the absorption of associated data.
+In the initialization, associated data absorption and finalization functions of AEGIS-128L, the state can be maintained in the bitsliced representation until the final update round.
 
 However, the keystream is a linear combination of nearly all the AES blocks. Evaluating it in bitsliced form would be slightly more expensive than switching between representations during each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state. These representation changes are costly. Nonetheless, in AEGIS, integrity comes almost for free. In contrast, AES-GCM’s GMAC is costly, particularly on CPUs without carryless multiplication support or lookup tables. During encryption, GMAC’s cost can surpass the cost of representation changes in AEGIS.
 

@@ -126,6 +126,18 @@ aegis128l_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 }
 
 static void
+aegis128l_absorb_packed(const uint8_t *const src, AesBlocks st)
+{
+    AesBlocks constant_input;
+    AesBlock  msg0, msg1;
+
+    block_from_bytes(msg0, src);
+    block_from_bytes(msg1, src + AES_BLOCK_LENGTH);
+    aegis_pack_constant_input(constant_input, msg0, msg1);
+    aegis_round_packed(st, constant_input);
+}
+
+static void
 aegis128l_absorb(const uint8_t *const src, AesBlocks st)
 {
     AesBlock msg0, msg1;
@@ -227,7 +239,7 @@ aegis128l_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks 
     tmp[2] ^= st[word_idx(2, 2)];
     tmp[3] ^= st[word_idx(2, 3)];
 
-#ifdef KEEP_STATE_BITSLICEDx
+#ifdef KEEP_STATE_BITSLICED
     {
         AesBlocks constant_input;
 
@@ -302,13 +314,26 @@ aegis128l_encrypt_detached(uint8_t *c, uint8_t *mac, size_t maclen, const uint8_
 
     aegis128l_init(k, npub, state);
 
-    for (i = 0; i + RATE <= adlen; i += RATE) {
-        aegis128l_absorb(ad + i, state);
-    }
-    if (adlen % RATE) {
-        memset(src, 0, RATE);
-        memcpy(src, ad + i, adlen % RATE);
-        aegis128l_absorb(src, state);
+    if (adlen > 2 * RATE) {
+        pack(state);
+        for (i = 0; i + RATE <= adlen; i += RATE) {
+            aegis128l_absorb_packed(ad + i, state);
+        }
+        if (adlen % RATE) {
+            memset(src, 0, RATE);
+            memcpy(src, ad + i, adlen % RATE);
+            aegis128l_absorb_packed(src, state);
+        }
+        unpack(state);
+    } else {
+        for (i = 0; i + RATE <= adlen; i += RATE) {
+            aegis128l_absorb(ad + i, state);
+        }
+        if (adlen % RATE) {
+            memset(src, 0, RATE);
+            memcpy(src, ad + i, adlen % RATE);
+            aegis128l_absorb(src, state);
+        }
     }
     for (i = 0; i + RATE <= mlen; i += RATE) {
         aegis128l_enc(c + i, m + i, state);

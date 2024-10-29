@@ -393,16 +393,6 @@ blocks_put(AesBlocks st, const AesBlock s, const size_t block)
 }
 
 static inline void
-blocks_get(AesBlock s, const AesBlocks st, const size_t block)
-{
-    size_t i;
-
-    for (i = 0; i < 4 * 2; i++) {
-        s[i] = st[word_idx(block, i)];
-    }
-}
-
-static inline void
 block_from_broadcast(AesBlock out, const AesBlockBytesBase in)
 {
 #ifdef NATIVE_LITTLE_ENDIAN

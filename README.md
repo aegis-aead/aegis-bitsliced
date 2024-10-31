@@ -56,7 +56,7 @@ In the initialization, associated data absorption and finalization functions of 
 
 However, the keystream is a linear combination of nearly all the AES blocks. Evaluating it in bitsliced form would be slightly more expensive than switching between representations during each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state. These representation changes are costly. Nonetheless, in AEGIS, integrity comes almost for free. In contrast, AES-GCM’s GMAC is costly, particularly on CPUs without carryless multiplication support or lookup tables. During encryption, GMAC’s cost can surpass the cost of representation changes in AEGIS.
 
-AEGIS-128X2 is implemented simply as two sets of 8 blocks that are updated alternately, providing a measurable speed advantage over AEGIS-128L on RISC-V.
+As an alternative to 64-bit words, AEGIS-128X2 can be implemented simply as two sets of 8 blocks that are updated alternately, providing a measurable speed advantage over AEGIS-128L on RISC-V, even with 32-bit words.
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations still enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 

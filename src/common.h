@@ -70,6 +70,11 @@ rotl32(const uint32_t x, const int b)
     return (x << b) | (x >> (32 - b));
 }
 
+#define ROTL32_64(x, b)                                         \
+    ((x << b) & ((~(uint64_t) 0xffffffff << b) | 0xffffffff)) | \
+        ((x >> (32 - b)) &                                      \
+         ((0xffffffff >> (32 - b)) | (((uint64_t) 0xffffffff >> (32 - b)) << 32)))
+
 #define COMPILER_ASSERT(X) (void) sizeof(char[(X) ? 1 : -1])
 
 #endif

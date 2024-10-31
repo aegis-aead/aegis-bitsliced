@@ -30,9 +30,11 @@ aegis_round(AesBlocks st)
         st[word_idx(i, 3)] ^= st1[word_idx((i - 1) % 6, 3)];
     }
 
+#if defined(ALT_REGISTER_ALLOCATION) && defined(KEEP_STATE_BITSLICED)
     (void) pack2;
     (void) unpack2;
     (void) aes_round2;
+#endif
 }
 
 static inline void

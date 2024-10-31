@@ -125,6 +125,7 @@ aegis128l_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 #endif
 }
 
+#ifdef KEEP_STATE_BITSLICED
 static void
 aegis128l_absorb_packed(const uint8_t *const src, AesBlocks st)
 {
@@ -136,6 +137,7 @@ aegis128l_absorb_packed(const uint8_t *const src, AesBlocks st)
     aegis_pack_constant_input(constant_input, msg0, msg1);
     aegis_round_packed(st, constant_input);
 }
+#endif
 
 static void
 aegis128l_absorb(const uint8_t *const src, AesBlocks st)
@@ -308,6 +310,7 @@ aegis128l_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const si
 {
     size_t i;
 
+#ifdef KEEP_STATE_BITSLICED
     if (adlen > 2 * RATE) {
         pack2(st);
         for (i = 0; i + RATE <= adlen; i += RATE) {
@@ -321,6 +324,7 @@ aegis128l_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const si
         unpack2(st);
         return;
     }
+#endif
     for (i = 0; i + RATE <= adlen; i += RATE) {
         aegis128l_absorb(ad + i, st);
     }

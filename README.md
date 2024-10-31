@@ -19,19 +19,19 @@ Spacemit X60 RISC-V without AES extensions:
 | Algorithm                              | Speed (Mb/s) |
 | :------------------------------------- | -----------: |
 | AES-128-GCM (OpenSSL 3.3, unprotected) |          223 |
-| AEGIS-128X2 (bitsliced)                |          254 |
+| AEGIS-128X2 (bitsliced, 64 bit words)  |          307 |
 | AEGIS-128L (bitsliced)                 |          193 |
 | AEGIS-128L (libaegis, unprotected)     |          198 |
 
 WebAssembly (Apple M1, baseline+simd128):
 
-| Algorithm                            | Speed (Mb/s) |
-| :----------------------------------- | -----------: |
-| AES-128-GCM (rust-crypto, fixsliced) |          472 |
-| AES-128-GCM (zig, unprotected)       |         1040 |
-| AEGIS-128X2 (bitsliced, 64-bit words)|         2730 |
-| AEGIS-128L (bitsliced)               |         2241 |
-| AEGIS-128L (libaegis, unprotected)   |         4232 |
+| Algorithm                             | Speed (Mb/s) |
+| :------------------------------------ | -----------: |
+| AES-128-GCM (rust-crypto, fixsliced)  |          472 |
+| AES-128-GCM (zig, unprotected)        |         1040 |
+| AEGIS-128X2 (bitsliced, 64-bit words) |         2730 |
+| AEGIS-128L (bitsliced)                |         2241 |
+| AEGIS-128L (libaegis, unprotected)    |         4232 |
 
 ARM Cortex M4 (Flipper Zero):
 
@@ -46,7 +46,7 @@ ARM Cortex M4 (Flipper Zero):
 
 ## Notes on bitslicing AEGIS
 
-The AEGIS-128L state consists of 8 AES blocks. The AES round function is applied to these 8 blocks simultaneously, making it well-suited not only for bitslicing in general but also for the barrel-shiftrows representation.
+The AEGIS-128L state consists of 8 AES blocks. The AES round function is applied to these 8 blocks simultaneously, making it well-suited not only for bitslicing in general but also for the barrel-shiftrows representation. AEGIS-128X2 can be bitsliced exactly the same way, using 64-bit words to update 16 blocks at once.
 
 The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_key=S_i)` for each block. This is equivalent to applying a keyless AES round to a rotated state and feed-forwarding the original state.
 

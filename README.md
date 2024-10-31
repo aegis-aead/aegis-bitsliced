@@ -29,6 +29,7 @@ WebAssembly (Apple M1, baseline+simd128):
 | :----------------------------------- | -----------: |
 | AES-128-GCM (rust-crypto, fixsliced) |          472 |
 | AES-128-GCM (zig, unprotected)       |         1040 |
+| AEGIS-128X2 (bitsliced, 64-bit words)|         2730 |
 | AEGIS-128L (bitsliced)               |         2241 |
 | AEGIS-128L (libaegis, unprotected)   |         4232 |
 

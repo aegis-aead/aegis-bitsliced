@@ -157,10 +157,10 @@ aegis256_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks s
     AesBlock tmp;
     size_t   i;
 
-    tmp[0] = (uint32_t) (mlen << 3);
-    tmp[1] = (uint32_t) (mlen >> (32 - 3));
-    tmp[2] = (uint32_t) (adlen << 3);
-    tmp[3] = (uint32_t) (adlen >> (32 - 3));
+    tmp[0] = (uint32_t) (adlen << 3);
+    tmp[1] = (uint32_t) (adlen >> (32 - 3));
+    tmp[2] = (uint32_t) (mlen << 3);
+    tmp[3] = (uint32_t) (mlen >> (32 - 3));
 
     tmp[0] ^= st[word_idx(3, 0)];
     tmp[1] ^= st[word_idx(3, 1)];

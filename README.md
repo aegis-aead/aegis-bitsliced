@@ -58,7 +58,7 @@ However, the keystream is a linear combination of nearly all AES blocks. Evaluat
 
 These representation changes are costly. However, with 10 8-block AES rounds, AES-128 encrypts only 8 blocks, while AEGIS-128L encrypts 20. Additionally, AEGIS provides integrity with minimal overhead, while AES-GCM’s GMAC is costly, especially on CPUs without carryless multiplication support or lookup tables.
 
-Alternatively, AEGIS-128X2 can be implemented using two sets of 8 blocks updated alternately, offering a measurable speed advantage over AEGIS-128L on RISC-V, even with 32-bit words.
+AEGIS-128X2 can be implemented using 64-bit words, or using two sets of 8 blocks updated alternately, offering a measurable speed advantage over AEGIS-128L on platforms such as WebAssembly and RISC-V, even with 32-bit words.
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 

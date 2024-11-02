@@ -26,6 +26,25 @@ test "aegis128l" {
     try testing.expectEqualSlices(u8, &mac, &expected_mac);
 }
 
+test "aegis128x2" {
+    var msg: [100]u8 = undefined;
+    var c: [msg.len]u8 = undefined;
+    var ad: [100]u8 = undefined;
+    var nonce: [aegis.aegis128l_NPUBBYTES]u8 = undefined;
+    var key: [aegis.aegis128l_KEYBYTES]u8 = undefined;
+    var mac: [32]u8 = undefined;
+
+    for (&msg, 0..) |*x, i| x.* = @truncate(i);
+    for (&ad, 0..) |*x, i| x.* = @truncate(1 + i);
+    for (&nonce, 0..) |*x, i| x.* = @truncate(2 + i);
+    for (&key, 0..) |*x, i| x.* = @truncate(3 + i);
+
+    const ret = aegis.aegis128x2_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
+    try testing.expectEqual(ret, 0);
+    const expected_mac = [_]u8{ 140, 181, 126, 87, 230, 79, 108, 196, 228, 190, 123, 241, 53, 252, 75, 11, 51, 194, 75, 237, 43, 1, 126, 233, 111, 187, 141, 239, 64, 112, 73, 105 };
+    try testing.expectEqualSlices(u8, &mac, &expected_mac);
+}
+
 test "aegis-128l - encrypt_detached oneshot" {
     inline for ([_]usize{ 16, 32 }) |mac_len| {
         var msg_buf: [max_msg_len]u8 = undefined;

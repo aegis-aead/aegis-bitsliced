@@ -19,6 +19,7 @@ pub fn build(b: *std.Build) void {
         "src/common.c",
         "src/aegis128l.c",
         "src/aegis128x2.c",
+        "src/aegis128x2_64.c",
         "src/aegis256.c",
     };
     lib.addCSourceFiles(.{ .files = source_files });

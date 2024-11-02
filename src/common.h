@@ -63,6 +63,31 @@ store32_le(uint8_t dst[4], uint32_t w)
 #endif
 }
 
+#define STORE64_LE(DST, W) store64_le((DST), (W))
+static inline void
+store64_le(uint8_t dst[8], uint64_t w)
+{
+#ifdef NATIVE_LITTLE_ENDIAN
+    memcpy(dst, &w, sizeof w);
+#else
+    dst[0] = (uint8_t) w;
+    w >>= 8;
+    dst[1] = (uint8_t) w;
+    w >>= 8;
+    dst[2] = (uint8_t) w;
+    w >>= 8;
+    dst[3] = (uint8_t) w;
+    w >>= 8;
+    dst[4] = (uint8_t) w;
+    w >>= 8;
+    dst[5] = (uint8_t) w;
+    w >>= 8;
+    dst[6] = (uint8_t) w;
+    w >>= 8;
+    dst[7] = (uint8_t) w;
+#endif
+}
+
 #define ROTL32(X, B) rotl32((X), (B))
 static inline uint32_t
 rotl32(const uint32_t x, const int b)

@@ -121,6 +121,7 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
             blocks_xor(st, constant_ctx_mask);
             aegis_round_packed(st, constant_input);
         }
+        unpack(st);
     }
 #else
     {
@@ -244,10 +245,10 @@ aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
     AesBlock tmp;
     size_t   i;
 
-    tmp[0] = (uint32_t) (mlen << 3);
-    tmp[1] = (uint32_t) (mlen >> (32 - 3));
-    tmp[2] = (uint32_t) (adlen << 3);
-    tmp[3] = (uint32_t) (adlen >> (32 - 3));
+    tmp[0] = (uint32_t) (adlen << 3);
+    tmp[1] = (uint32_t) (adlen >> (32 - 3));
+    tmp[2] = (uint32_t) (mlen << 3);
+    tmp[3] = (uint32_t) (mlen >> (32 - 3));
     memcpy(tmp + 4, tmp, 4 * sizeof(uint32_t));
     for (i = 0; i < 4 * 2; i++) {
         tmp[i] ^= st[word_idx(2, i)];

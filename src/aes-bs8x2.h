@@ -297,6 +297,42 @@ aes_round(AesBlocks st)
 }
 
 static void
+pack04_(AesBlocks st)
+{
+    size_t i;
+
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff, 8);
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff, 8);
+    SWAPMOVE(st[4], st[4 + 8], 0x00ff00ff, 8);
+    SWAPMOVE(st[4 + 16], st[4 + 24], 0x00ff00ff, 8);
+
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[4], st[4 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[12], st[12 + 16], 0x0000ffff, 16);
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x55555555, 1);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x55555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x33333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x33333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x33333333, 2);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x33333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f, 4);
+    }
+}
+
+static void
+pack04(AesBlocks st)
+{
+    pack04_(st + 32 * 0);
+    pack04_(st + 32 * 1);
+}
+
+static void
 pack_(AesBlocksBases st)
 {
     size_t i;

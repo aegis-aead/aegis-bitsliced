@@ -57,7 +57,7 @@ aegis_pack_constant_input(AesBlocks st, const AesBlock m0, const AesBlock m1)
     for (i = 0; i < 4 * 2; i++) {
         st[word_idx(4, i)] = m1[i];
     }
-    pack(st);
+    pack04(st);
 }
 
 static inline void

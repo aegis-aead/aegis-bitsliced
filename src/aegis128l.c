@@ -59,7 +59,7 @@ aegis_pack_constant_input(AesBlocks st, const AesBlock m0, const AesBlock m1)
     st[word_idx(4, 2)] = m1[2];
     st[word_idx(4, 3)] = m1[3];
 
-    pack2(st);
+    pack04(st);
 }
 #endif
 

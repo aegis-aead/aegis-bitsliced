@@ -46,22 +46,20 @@ ARM Cortex M4 (Flipper Zero):
 
 ## Notes on bitslicing AEGIS
 
-The AEGIS-128L state consists of 8 AES blocks. The AES round function is applied to these 8 blocks simultaneously, making it well-suited not only for bitslicing in general but also for the barrel-shiftrows representation. AEGIS-128X2 can be bitsliced exactly the same way, using 64-bit words to update 16 blocks at once.
+The AEGIS-128L state comprises 8 AES blocks. The AES round function is applied simultaneously to these 8 blocks, making it well-suited not only for general bitslicing but also for the barrel-shiftrows representation. AEGIS-128X2 can also be bitsliced in the same manner, using 64-bit words to update 16 blocks at once.
 
-The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_key=S_i)` for each block. This is equivalent to applying a keyless AES round to a rotated state and feed-forwarding the original state.
+The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_key=S_i)` for each block, equivalent to applying a keyless AES round to a rotated state while feeding forward the original state.
 
 In the bitsliced representation, rotating the state only requires a bit rotation across all bytes.
 
-In the initialization, associated data absorption and finalization functions of AEGIS-128L, the state can be maintained in the bitsliced representation until the final update round.
+In the initialization, associated data absorption, and finalization functions of AEGIS-128L, the state can be maintained in the bitsliced form until the final update round.
 
-However, the keystream is a linear combination of nearly all the AES blocks. Evaluating it in bitsliced form would be slightly more expensive than switching between representations during each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state.
-We could keep the state bitsliced, unpack a copy in order to evaluate the linear combination, and only pack the two input blocks  instead. But in practice, it doesn't seem worth it.
+However, the keystream is a linear combination of nearly all AES blocks. Evaluating this in bitsliced form would be slightly more costly than switching representations at each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state. We could keep the state bitsliced, unpack a copy to evaluate the linear combination, and only repack the two input blocks. However, in practice, this does not seem worthwhile.
 
-These representation changes are costly. However, with 10 8-block AES rounds, AES-128 only encrypts 8 blocks, while AEGIS-128L encrypts 20 of them.
-In addition, in AEGIS, integrity comes almost for free. In contrast, AES-GCM’s GMAC is costly, particularly on CPUs without carryless multiplication support or lookup tables.
+These representation changes are costly. However, with 10 8-block AES rounds, AES-128 encrypts only 8 blocks, while AEGIS-128L encrypts 20. Additionally, AEGIS provides integrity with minimal overhead, while AES-GCM’s GMAC is costly, especially on CPUs without carryless multiplication support or lookup tables.
 
-As an alternative to 64-bit words, AEGIS-128X2 can be implemented simply as two sets of 8 blocks that are updated alternately, providing a measurable speed advantage over AEGIS-128L on RISC-V, even with 32-bit words.
+Alternatively, AEGIS-128X2 can be implemented using two sets of 8 blocks updated alternately, offering a measurable speed advantage over AEGIS-128L on RISC-V, even with 32-bit words.
 
-While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations still enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
+While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 
-Finally, side-channel protection is unlikely to be necessary during the decryption phase, where an adversary cannot observe individual blocks or perform differential attacks.
+Lastly, side-channel protection is generally unnecessary during decryption, as an adversary cannot observe individual blocks or conduct differential attacks at that stage.

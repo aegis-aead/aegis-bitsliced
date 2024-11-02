@@ -10,7 +10,7 @@ const iterations = 1000;
 test "aegis128l" {
     var msg: [100]u8 = undefined;
     var c: [msg.len]u8 = undefined;
-    var ad: [100]u8 = undefined;
+    var ad: [101]u8 = undefined;
     var nonce: [aegis.aegis128l_NPUBBYTES]u8 = undefined;
     var key: [aegis.aegis128l_KEYBYTES]u8 = undefined;
     var mac: [32]u8 = undefined;
@@ -22,14 +22,14 @@ test "aegis128l" {
 
     const ret = aegis.aegis128l_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
     try testing.expectEqual(ret, 0);
-    const expected_mac = [_]u8{ 68, 221, 35, 187, 122, 131, 126, 255, 238, 44, 249, 194, 136, 73, 117, 112, 198, 131, 114, 252, 60, 9, 81, 217, 194, 52, 17, 239, 16, 79, 131, 118 };
+    const expected_mac = [_]u8{ 226, 153, 19, 17, 126, 4, 2, 204, 222, 116, 15, 137, 196, 121, 24, 10, 206, 245, 140, 15, 60, 203, 185, 170, 233, 3, 206, 26, 152, 244, 99, 172 };
     try testing.expectEqualSlices(u8, &mac, &expected_mac);
 }
 
 test "aegis128x2" {
     var msg: [100]u8 = undefined;
     var c: [msg.len]u8 = undefined;
-    var ad: [100]u8 = undefined;
+    var ad: [101]u8 = undefined;
     var nonce: [aegis.aegis128l_NPUBBYTES]u8 = undefined;
     var key: [aegis.aegis128l_KEYBYTES]u8 = undefined;
     var mac: [32]u8 = undefined;
@@ -41,7 +41,7 @@ test "aegis128x2" {
 
     const ret = aegis.aegis128x2_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
     try testing.expectEqual(ret, 0);
-    const expected_mac = [_]u8{ 140, 181, 126, 87, 230, 79, 108, 196, 228, 190, 123, 241, 53, 252, 75, 11, 51, 194, 75, 237, 43, 1, 126, 233, 111, 187, 141, 239, 64, 112, 73, 105 };
+    const expected_mac = [_]u8{ 36, 14, 49, 60, 126, 23, 20, 197, 179, 40, 135, 71, 4, 45, 59, 78, 87, 247, 78, 95, 23, 100, 2, 94, 1, 126, 28, 70, 225, 246, 97, 84 };
     try testing.expectEqualSlices(u8, &mac, &expected_mac);
 }
 

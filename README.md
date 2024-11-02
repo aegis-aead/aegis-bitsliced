@@ -10,16 +10,16 @@ ARM Cortex A53:
 
 | Algorithm                            | Speed (Mb/s) |
 | :----------------------------------- | -----------: |
-| AES-128-GCM (OpenSSL 3.3, bitsliced) |          129 |
-| AEGIS-128L (bitsliced)               |          210 |
-| AEGIS-128L (libaegis, unprotected)   |          427 |
+| AES-128-GCM (OpenSSL 3.3, bitsliced) |          261 |
+| AEGIS-128L (bitsliced)               |          414 |
+| AEGIS-128L (libaegis, unprotected)   |          782 |
 
 Spacemit X60 RISC-V without AES extensions:
 
 | Algorithm                              | Speed (Mb/s) |
 | :------------------------------------- | -----------: |
 | AES-128-GCM (OpenSSL 3.3, unprotected) |          223 |
-| AEGIS-128X2 (bitsliced, 64 bit words)  |          307 |
+| AEGIS-128X2 (bitsliced, 64 bit words)  |          333 |
 | AEGIS-128L (bitsliced)                 |          193 |
 | AEGIS-128L (libaegis, unprotected)     |          198 |
 
@@ -27,9 +27,9 @@ WebAssembly (Apple M1, baseline+simd128):
 
 | Algorithm                             | Speed (Mb/s) |
 | :------------------------------------ | -----------: |
-| AES-128-GCM (rust-crypto, fixsliced)  |          472 |
+| AES-128-GCM (boringssl, blitsliced    |          480 |
 | AES-128-GCM (zig, unprotected)        |         1040 |
-| AEGIS-128X2 (bitsliced, 64-bit words) |         2730 |
+| AEGIS-128X2 (bitsliced, 64-bit words) |         2896 |
 | AEGIS-128L (bitsliced)                |         2241 |
 | AEGIS-128L (libaegis, unprotected)    |         4232 |
 
@@ -54,7 +54,11 @@ In the bitsliced representation, rotating the state only requires a bit rotation
 
 In the initialization, associated data absorption and finalization functions of AEGIS-128L, the state can be maintained in the bitsliced representation until the final update round.
 
-However, the keystream is a linear combination of nearly all the AES blocks. Evaluating it in bitsliced form would be slightly more expensive than switching between representations during each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state. These representation changes are costly. Nonetheless, in AEGIS, integrity comes almost for free. In contrast, AES-GCM’s GMAC is costly, particularly on CPUs without carryless multiplication support or lookup tables. During encryption, GMAC’s cost can surpass the cost of representation changes in AEGIS.
+However, the keystream is a linear combination of nearly all the AES blocks. Evaluating it in bitsliced form would be slightly more expensive than switching between representations during each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state.
+We could keep the state bitsliced, unpack a copy in order to evaluate the linear combination, and only pack the two input blocks  instead. But in practice, it doesn't seem worth it.
+
+These representation changes are costly. However, with 10 8-block AES rounds, AES-128 only encrypts 8 blocks, while AEGIS-128L encrypts 20 of them.
+In addition, in AEGIS, integrity comes almost for free. In contrast, AES-GCM’s GMAC is costly, particularly on CPUs without carryless multiplication support or lookup tables.
 
 As an alternative to 64-bit words, AEGIS-128X2 can be implemented simply as two sets of 8 blocks that are updated alternately, providing a measurable speed advantage over AEGIS-128L on RISC-V, even with 32-bit words.
 

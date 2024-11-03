@@ -31,6 +31,7 @@ aegis_round(AesBlocks st)
     }
 
 #if defined(ALT_REGISTER_ALLOCATION) && defined(KEEP_STATE_BITSLICED)
+    (void) pack04;
     (void) pack2;
     (void) unpack2;
     (void) aes_round2;

@@ -402,23 +402,23 @@ blocks_get(AesBlock s, const AesBlocks st, const size_t block)
 static inline void
 block_from_bytes(AesBlock out, const AesBlockBytes in)
 {
-    out[0] = (((uint64_t) LOAD32_LE(in + 4 * 0)) << 32) | LOAD32_LE(in + 16 + 4 * 0);
-    out[1] = (((uint64_t) LOAD32_LE(in + 4 * 1)) << 32) | LOAD32_LE(in + 16 + 4 * 1);
-    out[2] = (((uint64_t) LOAD32_LE(in + 4 * 2)) << 32) | LOAD32_LE(in + 16 + 4 * 2);
-    out[3] = (((uint64_t) LOAD32_LE(in + 4 * 3)) << 32) | LOAD32_LE(in + 16 + 4 * 3);
+    out[1] = LOAD64_LE(in + 8 * 0);
+    out[3] = LOAD64_LE(in + 8 * 1);
+    out[0] = LOAD64_LE(in + 8 * 2);
+    out[2] = LOAD64_LE(in + 8 * 3);
+    SWAPMOVE(out[0], out[1], 0x00000000ffffffff, 32);
+    SWAPMOVE(out[2], out[3], 0x00000000ffffffff, 32);
 }
 
 static inline void
-block_to_bytes(AesBlockBytes out, const AesBlock in)
+block_to_bytes(AesBlockBytes out, AesBlock in)
 {
-    STORE32_LE(out + 4 * 0, (uint32_t) (in[0] >> 32));
-    STORE32_LE(out + 4 * 1, (uint32_t) (in[1] >> 32));
-    STORE32_LE(out + 4 * 2, (uint32_t) (in[2] >> 32));
-    STORE32_LE(out + 4 * 3, (uint32_t) (in[3] >> 32));
-    STORE32_LE(out + 16 + 4 * 0, (uint32_t) in[0]);
-    STORE32_LE(out + 16 + 4 * 1, (uint32_t) in[1]);
-    STORE32_LE(out + 16 + 4 * 2, (uint32_t) in[2]);
-    STORE32_LE(out + 16 + 4 * 3, (uint32_t) in[3]);
+    SWAPMOVE(in[2], in[3], 0x00000000ffffffff, 32);
+    SWAPMOVE(in[0], in[1], 0x00000000ffffffff, 32);
+    STORE64_LE(out + 8 * 0, in[1]);
+    STORE64_LE(out + 8 * 1, in[3]);
+    STORE64_LE(out + 8 * 2, in[0]);
+    STORE64_LE(out + 8 * 3, in[2]);
 }
 
 static void

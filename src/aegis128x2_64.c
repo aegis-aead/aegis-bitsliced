@@ -42,7 +42,7 @@ aegis_round_packed(AesBlocks st, const AesBlocks constant_input)
     AesBlocks st1;
 
     memcpy(st1, st, sizeof(AesBlocks));
-    aes_round(st1);
+    aes_round2(st1);
     blocks_rotr(st1);
     blocks_xor(st, st1);
     blocks_xor(st, constant_input);
@@ -118,12 +118,12 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
         AesBlocks       constant_input;
 
         aegis_pack_constant_input(constant_input, n, k);
-        pack(st);
+        pack2(st);
         for (i = 0; i < 10; i++) {
             blocks_xor(st, constant_ctx_mask);
             aegis_round_packed(st, constant_input);
         }
-        unpack(st);
+        unpack2(st);
     }
 #    else
     {
@@ -261,11 +261,11 @@ aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
         AesBlocks constant_input;
 
         aegis_pack_constant_input(constant_input, tmp, tmp);
-        pack(st);
+        pack2(st);
         for (i = 0; i < 7; i++) {
             aegis_round_packed(st, constant_input);
         }
-        unpack(st);
+        unpack2(st);
     }
 #    else
     for (i = 0; i < 7; i++) {
@@ -304,7 +304,7 @@ aegis128x2_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const s
 
 #    ifdef KEEP_STATE_BITSLICED
     if (adlen > 2 * RATE) {
-        pack(st);
+        pack2(st);
         for (i = 0; i + RATE <= adlen; i += RATE) {
             aegis128x2_absorb_packed(ad + i, st);
         }
@@ -313,7 +313,7 @@ aegis128x2_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const s
             memcpy(tmp, ad + i, adlen % RATE);
             aegis128x2_absorb_packed(tmp, st);
         }
-        unpack(st);
+        unpack2(st);
         return;
     }
 #    endif

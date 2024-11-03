@@ -281,30 +281,6 @@ aegis128l_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks 
     }
 }
 
-size_t
-aegis128l_keybytes(void)
-{
-    return aegis128l_KEYBYTES;
-}
-
-size_t
-aegis128l_npubbytes(void)
-{
-    return aegis128l_NPUBBYTES;
-}
-
-size_t
-aegis128l_abytes_min(void)
-{
-    return aegis128l_ABYTES_MIN;
-}
-
-size_t
-aegis128l_abytes_max(void)
-{
-    return aegis128l_ABYTES_MAX;
-}
-
 static void
 aegis128l_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const size_t adlen)
 {
@@ -333,6 +309,30 @@ aegis128l_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const si
         memcpy(tmp, ad + i, adlen % RATE);
         aegis128l_absorb(tmp, st);
     }
+}
+
+size_t
+aegis128l_keybytes(void)
+{
+    return aegis128l_KEYBYTES;
+}
+
+size_t
+aegis128l_npubbytes(void)
+{
+    return aegis128l_NPUBBYTES;
+}
+
+size_t
+aegis128l_abytes_min(void)
+{
+    return aegis128l_ABYTES_MIN;
+}
+
+size_t
+aegis128l_abytes_max(void)
+{
+    return aegis128l_ABYTES_MAX;
 }
 
 int

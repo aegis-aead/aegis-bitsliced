@@ -5,13 +5,16 @@
 #include <string.h>
 
 #include "common.h"
-#include "include/aegis.h"
-#include "include/aegis128x2.h"
 
-#include "aes-bs8x2.h"
+#if BITSLICE_WORD_SIZE == 32
 
-#define RATE      64
-#define ALIGNMENT 32
+#    include "include/aegis.h"
+#    include "include/aegis128x2.h"
+
+#    include "aes-bs8x2.h"
+
+#    define RATE      64
+#    define ALIGNMENT 32
 
 static void
 aegis_round(AesBlocks st)
@@ -106,7 +109,7 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
     blocks_put(st, kc1, 6);
     blocks_put(st, kc0, 7);
 
-#ifdef KEEP_STATE_BITSLICED
+#    ifdef KEEP_STATE_BITSLICED
     {
         const AesBlocks constant_ctx_mask = {
             0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0,  0, 0, 0, 0,
@@ -123,7 +126,7 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
         }
         unpack(st);
     }
-#else
+#    else
     {
         const AesBlock ctx = { 0x00000100, 0x00000000, 0x00000000, 0x00000000,
                                0x00000101, 0x00000000, 0x00000000, 0x00000000 };
@@ -138,7 +141,7 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
             aegis_update(st, n, k);
         }
     }
-#endif
+#    endif
 }
 
 static void
@@ -254,7 +257,7 @@ aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
         tmp[i] ^= st[word_idx(2, i)];
     }
 
-#ifdef KEEP_STATE_BITSLICED
+#    ifdef KEEP_STATE_BITSLICED
     {
         AesBlocks constant_input;
 
@@ -265,11 +268,11 @@ aegis128x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
         }
         unpack(st);
     }
-#else
+#    else
     for (i = 0; i < 7; i++) {
         aegis_update(st, tmp, tmp);
     }
-#endif
+#    endif
 
     if (maclen == 16) {
         for (i = 0; i < 4; i++) {
@@ -448,3 +451,5 @@ aegis128x2_decrypt(uint8_t *m, const uint8_t *c, size_t clen, size_t maclen, con
     }
     return ret;
 }
+
+#endif

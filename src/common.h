@@ -2,6 +2,7 @@
 #define common_H
 
 #include <errno.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -13,6 +14,14 @@
 /* Force the compiler to emit different versions of functions that aren't always inlined (ex: pack)
  in order to avoid performance regressions when KEEP_STATE_BITSLICED is set */
 #define ALT_REGISTER_ALLOCATION
+
+#if (defined(__WORDSIZE) && __WORDSIZE >= 64) || ((UINT_MAX >> 63) > 0) || \
+    (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ >= 8) || defined(__wasm__)
+#    define BITSLICE_WORD_SIZE 64
+#endif
+#ifndef BITSLICE_WORD_SIZE
+#    define BITSLICE_WORD_SIZE 32
+#endif
 
 #if defined(__i386__) || defined(_M_IX86) || defined(__x86_64__) || defined(_M_AMD64)
 #    define NATIVE_LITTLE_ENDIAN

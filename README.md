@@ -35,13 +35,13 @@ Sifive, u74-mc:
 
 WebAssembly (Apple M1, baseline+simd128):
 
-| Algorithm                           | Speed (Mb/s) |
-| :---------------------------------- | -----------: |
-| AES-128-GCM (boringssl, blitsliced) |          480 |
-| AES-128-GCM (zig, unprotected)      |         1040 |
-| AEGIS-128X2 (bitsliced)             |         2912 |
-| AEGIS-128L (bitsliced)              |         2241 |
-| AEGIS-128L (libaegis, unprotected)  |         4232 |
+| Algorithm                          | Speed (Mb/s) |
+| :--------------------------------- | -----------: |
+| AES-128-GCM (boringssl, bitsliced) |          480 |
+| AES-128-GCM (zig, unprotected)     |         1040 |
+| AEGIS-128X2 (bitsliced)            |         2912 |
+| AEGIS-128L (bitsliced)             |         2241 |
+| AEGIS-128L (libaegis, unprotected) |         4232 |
 
 ARM Cortex M4 (Flipper Zero):
 

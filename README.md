@@ -8,40 +8,40 @@ With this representation, AEGIS-128* consistently outperforms AES128-GCM in term
 
 ARM Cortex A53:
 
-| Algorithm                            | Speed (Mb/s) |
-| :----------------------------------- | -----------: |
-| AES-128-GCM (OpenSSL 3.3, bitsliced) |          261 |
-| AEGIS-128L (bitsliced)               |          414 |
-| AEGIS-128L (libaegis, unprotected)   |          782 |
+| Algorithm                            | Speed (Mb/s) |                 |
+| :----------------------------------- | -----------: | :-------------- |
+| AES-128-GCM (OpenSSL 3.3, bitsliced) |          261 | =========       |
+| AEGIS-128L (bitsliced)               |          414 | =============== |
+| AEGIS-128L (libaegis, unprotected)   |          782 |                 |
 
 Spacemit X60 RISC-V without AES extensions:
 
-| Algorithm                              | Speed (Mb/s) |
-| :------------------------------------- | -----------: |
-| AES-128-GCM (BoringSSL, bitsliced)     |          137 |
-| AES-128-GCM (OpenSSL 3.3, UNPROTECTED) |          223 |
-| AEGIS-128X2 (bitsliced)                |          333 |
-| AEGIS-128L (bitsliced)                 |          193 |
-| AEGIS-128L (libaegis, unprotected)     |          198 |
+| Algorithm                              | Speed (Mb/s) |                 |
+| :------------------------------------- | -----------: | :-------------- |
+| AES-128-GCM (BoringSSL, bitsliced)     |          137 | ======          |
+| AES-128-GCM (OpenSSL 3.3, unprotected) |          223 |                 |
+| AEGIS-128X2 (bitsliced)                |          333 | =============== |
+| AEGIS-128L (bitsliced)                 |          193 | =========       |
+| AEGIS-128L (libaegis, unprotected)     |          198 |                 |
 
 Sifive, u74-mc:
 
-| Algorithm                          | Speed (Mb/s) |
-| :--------------------------------- | -----------: |
-| AES-128-GCM (BoringSSL, bitsliced) |          130 |
-| AEGIS-128X2 (bitsliced)            |          311 |
-| AEGIS-128L (bitsliced)             |          182 |
-| AEGIS-128L (libaegis, unprotected) |          507 |
+| Algorithm                          | Speed (Mb/s) |                 |
+| :--------------------------------- | -----------: | :-------------- |
+| AES-128-GCM (BoringSSL, bitsliced) |          130 | ======          |
+| AEGIS-128X2 (bitsliced)            |          311 | =============== |
+| AEGIS-128L (bitsliced)             |          182 | =========       |
+| AEGIS-128L (libaegis, unprotected) |          507 |                 |
 
 WebAssembly (Apple M1, baseline+simd128):
 
-| Algorithm                          | Speed (Mb/s) |
-| :--------------------------------- | -----------: |
-| AES-128-GCM (boringssl, bitsliced) |          480 |
-| AES-128-GCM (zig, unprotected)     |         1040 |
-| AEGIS-128X2 (bitsliced)            |         2912 |
-| AEGIS-128L (bitsliced)             |         2241 |
-| AEGIS-128L (libaegis, unprotected) |         4232 |
+| Algorithm                          | Speed (Mb/s) |                 |
+| :--------------------------------- | -----------: | :-------------- |
+| AES-128-GCM (boringssl, bitsliced) |          480 | ==              |
+| AES-128-GCM (zig, unprotected)     |         1040 |                 |
+| AEGIS-128X2 (bitsliced)            |         2912 | =============== |
+| AEGIS-128L (bitsliced)             |         2241 | ============    |
+| AEGIS-128L (libaegis, unprotected) |         4232 |                 |
 
 ARM Cortex M4 (Flipper Zero):
 

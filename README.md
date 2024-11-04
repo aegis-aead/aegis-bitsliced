@@ -18,10 +18,20 @@ Spacemit X60 RISC-V without AES extensions:
 
 | Algorithm                              | Speed (Mb/s) |
 | :------------------------------------- | -----------: |
-| AES-128-GCM (OpenSSL 3.3, unprotected) |          223 |
+| AES-128-GCM (BoringSSL, bitsliced)     |          137 |
+| AES-128-GCM (OpenSSL 3.3, UNPROTECTED) |          223 |
 | AEGIS-128X2 (bitsliced, 64 bit words)  |          333 |
 | AEGIS-128L (bitsliced)                 |          193 |
 | AEGIS-128L (libaegis, unprotected)     |          198 |
+
+Sifive, u74-mc:
+
+| Algorithm                             | Speed (Mb/s) |
+| :------------------------------------ | -----------: |
+| AES-128-GCM (BoringSSL, bitsliced)    |          130 |
+| AEGIS-128X2 (bitsliced, 64 bit words) |          311 |
+| AEGIS-128L (bitsliced)                |          182 |
+| AEGIS-128L (libaegis, unprotected)    |          507 |
 
 WebAssembly (Apple M1, baseline+simd128):
 

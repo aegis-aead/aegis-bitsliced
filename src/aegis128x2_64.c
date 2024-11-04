@@ -36,6 +36,7 @@ aegis_round(AesBlocks st)
     }
 }
 
+#    ifdef KEEP_STATE_BITSLICED
 static void
 aegis_round_packed(AesBlocks st, const AesBlocks constant_input)
 {
@@ -62,6 +63,7 @@ aegis_pack_constant_input(AesBlocks st, const AesBlock m0, const AesBlock m1)
     }
     pack04(st);
 }
+#    endif
 
 static inline void
 aegis_absorb_rate(AesBlocks st, const AesBlock m0, const AesBlock m1)

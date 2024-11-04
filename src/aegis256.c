@@ -125,8 +125,8 @@ aegis256_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
         msg[i] ^=
             st[word_idx(4, i)] ^ st[word_idx(5, i)] ^ (st[word_idx(2, i)] & st[word_idx(3, i)]);
     }
-    block_to_bytes(dst, msg);
     aegis_update(st, msg);
+    block_to_bytes(dst, msg);
 }
 
 static void

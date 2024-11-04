@@ -9,6 +9,7 @@ const iterations = 1000;
 
 test "aegis128l" {
     var msg: [100]u8 = undefined;
+    var msg2: [msg.len]u8 = undefined;
     var c: [msg.len]u8 = undefined;
     var ad: [101]u8 = undefined;
     var nonce: [aegis.aegis128l_NPUBBYTES]u8 = undefined;
@@ -20,18 +21,22 @@ test "aegis128l" {
     for (&nonce, 0..) |*x, i| x.* = @truncate(2 + i);
     for (&key, 0..) |*x, i| x.* = @truncate(3 + i);
 
-    const ret = aegis.aegis128l_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
+    var ret = aegis.aegis128l_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
     try testing.expectEqual(ret, 0);
     const expected_mac = [_]u8{ 226, 153, 19, 17, 126, 4, 2, 204, 222, 116, 15, 137, 196, 121, 24, 10, 206, 245, 140, 15, 60, 203, 185, 170, 233, 3, 206, 26, 152, 244, 99, 172 };
     try testing.expectEqualSlices(u8, &mac, &expected_mac);
+    ret = aegis.aegis128l_decrypt_detached(&msg2, &c, c.len, &mac, mac.len, &ad, ad.len, &nonce, &key);
+    try testing.expectEqual(ret, 0);
+    try testing.expectEqualSlices(u8, &msg, &msg2);
 }
 
 test "aegis128x2" {
     var msg: [100]u8 = undefined;
+    var msg2: [msg.len]u8 = undefined;
     var c: [msg.len]u8 = undefined;
     var ad: [101]u8 = undefined;
-    var nonce: [aegis.aegis128l_NPUBBYTES]u8 = undefined;
-    var key: [aegis.aegis128l_KEYBYTES]u8 = undefined;
+    var nonce: [aegis.aegis128x2_NPUBBYTES]u8 = undefined;
+    var key: [aegis.aegis128x2_KEYBYTES]u8 = undefined;
     var mac: [32]u8 = undefined;
 
     for (&msg, 0..) |*x, i| x.* = @truncate(i);
@@ -39,10 +44,13 @@ test "aegis128x2" {
     for (&nonce, 0..) |*x, i| x.* = @truncate(2 + i);
     for (&key, 0..) |*x, i| x.* = @truncate(3 + i);
 
-    const ret = aegis.aegis128x2_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
+    var ret = aegis.aegis128x2_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
     try testing.expectEqual(ret, 0);
     const expected_mac = [_]u8{ 36, 14, 49, 60, 126, 23, 20, 197, 179, 40, 135, 71, 4, 45, 59, 78, 87, 247, 78, 95, 23, 100, 2, 94, 1, 126, 28, 70, 225, 246, 97, 84 };
     try testing.expectEqualSlices(u8, &mac, &expected_mac);
+    ret = aegis.aegis128x2_decrypt_detached(&msg2, &c, c.len, &mac, mac.len, &ad, ad.len, &nonce, &key);
+    try testing.expectEqual(ret, 0);
+    try testing.expectEqualSlices(u8, &msg, &msg2);
 }
 
 test "aegis-128l - encrypt_detached oneshot" {

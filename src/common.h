@@ -130,10 +130,11 @@ rotl32(const uint32_t x, const int b)
         ((x >> (32 - b)) &                                      \
          ((0xffffffff >> (32 - b)) | (((uint64_t) 0xffffffff >> (32 - b)) << 32)))
 
-#define NAND(X, Y)   (~((X) & (Y)))
-#define NOR(X, Y)    (~((X) | (Y)))
-#define XNOR(X, Y)   (~((X) ^ (Y)))
-#define MUX(S, X, Y) (((X) & (S)) | ((Y) & ~(S)))
+#define NAND(X, Y)    (~((X) & (Y)))
+#define NOR(X, Y)     (~((X) | (Y)))
+#define XNOR(X, Y)    (~((X) ^ (Y)))
+#define MUX(S, X, Y)  (((X) & (S)) | ((Y) & ~(S)))
+#define NMUX(S, X, Y) (~MUX(S, X, Y))
 
 #define COMPILER_ASSERT(X) (void) sizeof(char[(X) ? 1 : -1])
 

@@ -118,17 +118,21 @@ store64_le(uint8_t dst[8], uint64_t w)
 #endif
 }
 
-#define ROTL32(X, B) rotl32((X), (B))
+#ifdef __clang__
+#    define ROTL32(X, B) __builtin_rotateleft32((X), (B))
+#else
+#    define ROTL32(X, B) rotl32((X), (B))
 static inline uint32_t
 rotl32(const uint32_t x, const int b)
 {
     return (x << b) | (x >> (32 - b));
 }
+#endif
 
-#define ROTL32_64(x, b)                                         \
-    ((x << b) & ((~(uint64_t) 0xffffffff << b) | 0xffffffff)) | \
-        ((x >> (32 - b)) &                                      \
-         ((0xffffffff >> (32 - b)) | (((uint64_t) 0xffffffff >> (32 - b)) << 32)))
+#define ROTL32_64(X, B)                                               \
+    (((X) << (B)) & ((~(uint64_t) 0xffffffff << (B)) | 0xffffffff)) | \
+        (((X) >> (32 - (B))) &                                        \
+         ((0xffffffff >> (32 - (B))) | (((uint64_t) 0xffffffff >> (32 - (B))) << 32)))
 
 #define NAND(X, Y)   (~((X) & (Y)))
 #define NOR(X, Y)    (~((X) | (Y)))

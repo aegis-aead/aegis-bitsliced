@@ -6,7 +6,7 @@ const time = std.time;
 const Timer = std.time.Timer;
 
 const msg_len: usize = 16384;
-const iterations = 100000;
+const iterations = 250000;
 
 fn bench_aegis128l() !void {
     var key: [aegis.aegis128l_KEYBYTES]u8 = undefined;

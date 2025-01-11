@@ -72,4 +72,6 @@ AEGIS-128X2 can be implemented using 64-bit words, or using two sets of 8 blocks
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 
+These implementations uses the SBOX circuits from Maximov & Ekdahl. [New circuits](https://eprint.iacr.org/2024/1996.pdf) may be worth evaluating.
+
 Lastly, side-channel protection is generally unnecessary during decryption, as an adversary cannot observe individual blocks or conduct differential attacks at that stage.

@@ -11,7 +11,7 @@ With this representation, AEGIS-128* consistently outperforms AES128-GCM in term
 | Algorithm                            | Speed (Mb/s) |
 | :----------------------------------- | -----------: |
 | AES-128-GCM (OpenSSL 3.3, bitsliced) |          261 |
-| AEGIS-128L (bitsliced)               |          414 |
+| AEGIS-128L (bitsliced)               |          423 |
 | AEGIS-128L (libaegis, _unprotected_) |          782 |
 
 **Spacemit X60 RISC-V without AES extensions:**
@@ -72,6 +72,20 @@ AEGIS-128X2 can be implemented using 64-bit words, or using two sets of 8 blocks
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 
-These implementations uses the SBOX circuits from Maximov & Ekdahl. [New circuits](https://eprint.iacr.org/2024/1996.pdf) may be worth evaluating.
+These implementations uses the SBOX circuits from Maximov & Ekdahl. A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
+
+| Sbox circuit                     | AEGIS-128L speed (Mb/2) |
+| :------------------------------- | ----------------------: |
+| Maximov & Ekdahl                 |                  423.02 |
+| depth16_RNBP28D_4AD_34NLs_81XORs |                  414.45 |
+| jbkk2_RNBP41D_5AD_32NLs_97XORs   |                  410.53 |
+| 32ANDs_BPD26D_6AD_32NLs_81XORs   |                  408.49 |
+| depth16_BPD15D_4AD_34NLs_100XORs |                  405.76 |
+| 32ANDs_BPD18D_6AD_32NLs_93XORs   |                  402.95 |
+| jbkk2_BPD19D_5AD_32NLs_122XORs   |                  401.25 |
+| jbkk3_RNBP41D_4AD_33NLs_102XORs  |                  400.72 |
+| jbkk2_BPD17D_5AD_32NLs_142XORs   |                  395.75 |
+| jbkk3_BPD16D_4AD_33NLs_154XORs   |                  376.64 |
 
 Lastly, side-channel protection is generally unnecessary during decryption, as an adversary cannot observe individual blocks or conduct differential attacks at that stage.
+

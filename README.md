@@ -88,4 +88,3 @@ These implementations uses the SBOX circuits from Maximov & Ekdahl. A comparison
 | jbkk3_BPD16D_4AD_33NLs_154XORs   |                  376.64 |
 
 Lastly, side-channel protection is generally unnecessary during decryption, as an adversary cannot observe individual blocks or conduct differential attacks at that stage.
-

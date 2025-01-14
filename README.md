@@ -74,7 +74,7 @@ While a dedicated bitsliced representation could further improve performance, st
 
 These implementations uses the SBOX circuits from Maximov & Ekdahl. A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
 
-| Sbox circuit                     | AEGIS-128L speed (Mb/2) |
+| Sbox circuit                     | AEGIS-128L speed (Mb/s) |
 | :------------------------------- | ----------------------: |
 | Maximov & Ekdahl                 |                  423.02 |
 | depth16_RNBP28D_4AD_34NLs_81XORs |                  414.45 |

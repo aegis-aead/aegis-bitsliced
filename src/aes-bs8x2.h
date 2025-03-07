@@ -255,7 +255,7 @@ aes_round(AesBlocks st)
 }
 
 static void
-pack04_(AesBlocks st)
+pack04_(AesBlocksBases st)
 {
     size_t i;
 

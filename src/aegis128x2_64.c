@@ -89,7 +89,7 @@ static void
 aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 {
 
-    const AesBlock c0 = { 0x201010002010100, 0xd0805030d080503, 0x5937221559372215,
+    const AesBlock c0 = { 0x0201010002010100, 0x0d0805030d080503, 0x5937221559372215,
                           0x6279e9906279e990 };
     const AesBlock c1 = { 0x55183ddb55183ddb, 0xf12fc26df12fc26d, 0x4231112042311120,
                           0xdd28b573dd28b573 };

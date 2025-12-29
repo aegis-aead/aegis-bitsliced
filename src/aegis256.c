@@ -20,14 +20,14 @@ aegis_round(AesBlocks st)
 
     memcpy(st1, st, sizeof(AesBlocks));
     pack(st1);
-    aes_round(st);
+    aes_round(st1);
     unpack(st1);
 
     for (i = 0; i < 6; i++) {
-        st[word_idx(i, 0)] ^= st1[word_idx((i - 1) % 6, 0)];
-        st[word_idx(i, 1)] ^= st1[word_idx((i - 1) % 6, 1)];
-        st[word_idx(i, 2)] ^= st1[word_idx((i - 1) % 6, 2)];
-        st[word_idx(i, 3)] ^= st1[word_idx((i - 1) % 6, 3)];
+        st[word_idx(i, 0)] ^= st1[word_idx((i + 5) % 6, 0)];
+        st[word_idx(i, 1)] ^= st1[word_idx((i + 5) % 6, 1)];
+        st[word_idx(i, 2)] ^= st1[word_idx((i + 5) % 6, 2)];
+        st[word_idx(i, 3)] ^= st1[word_idx((i + 5) % 6, 3)];
     }
 
 #if defined(ALT_REGISTER_ALLOCATION) && defined(KEEP_STATE_BITSLICED)

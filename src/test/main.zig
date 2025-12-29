@@ -69,7 +69,7 @@ test "aegis256" {
 
     var ret = aegis.aegis256_encrypt_detached(&c, &mac, mac.len, &msg, msg.len, &ad, ad.len, &nonce, &key);
     try testing.expectEqual(ret, 0);
-    const expected_mac = [_]u8{ 112, 124, 142, 87, 153, 127, 104, 243, 226, 107, 255, 250, 170, 147, 255, 175, 254, 143, 137, 3, 210, 18, 85, 182, 216, 190, 37, 163, 58, 212, 102, 138 };
+    const expected_mac = [_]u8{ 26, 53, 229, 162, 206, 238, 244, 85, 57, 235, 86, 87, 139, 124, 115, 125, 161, 124, 254, 79, 203, 177, 9, 126, 73, 78, 67, 139, 26, 255, 203, 235 };
     try testing.expectEqualSlices(u8, &mac, &expected_mac);
     ret = aegis.aegis256_decrypt_detached(&msg2, &c, c.len, &mac, mac.len, &ad, ad.len, &nonce, &key);
     try testing.expectEqual(ret, 0);

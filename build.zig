@@ -19,6 +19,8 @@ pub fn build(b: *std.Build) void {
             "src/aegis128x2.c",
             "src/aegis128x2_64.c",
             "src/aegis256.c",
+            "src/aegis256x2.c",
+            "src/aegis256x2_64.c",
         },
     });
 

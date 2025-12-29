@@ -21,6 +21,7 @@
 #include "aegis128l.h"
 #include "aegis128x2.h"
 #include "aegis256.h"
+#include "aegis256x2.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -699,4 +699,108 @@ unpack2(AesBlocks st)
 
 #endif
 
+static inline void
+blocks_rotr6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i++) {
+        st[i] = ((st[i] & 0x1f1f1f1f1f1f1f1f) << 1) | ((st[i] & 0x2020202020202020) >> 5);
+    }
+}
+
+static void
+pack04_6(AesBlocks st)
+{
+    size_t i;
+
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff00ff00ff, 8);
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff00ff00ff, 8);
+
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff0000ffff, 16);
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff0000ffff, 16);
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f0f0f0f0f, 4);
+    }
+}
+
+#ifdef KEEP_STATE_BITSLICED
+#    ifdef ALT_REGISTER_ALLOCATION
+
+static void
+pack2_6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 8], 0x00ff00ff00ff00ff, 8);
+        SWAPMOVE(st[i + 16], st[i + 24], 0x00ff00ff00ff00ff, 8);
+    }
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff0000ffff, 16);
+    }
+    for (i = 8; i < 14; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff0000ffff, 16);
+    }
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 3], st[i + 2], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 7], st[i + 6], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f0f0f0f0f, 4);
+    }
+}
+
+static void
+unpack2_6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 3], st[i + 2], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 7], st[i + 6], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f0f0f0f0f, 4);
+    }
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff0000ffff, 16);
+    }
+    for (i = 8; i < 14; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff0000ffff, 16);
+    }
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 8], 0x00ff00ff00ff00ff, 8);
+        SWAPMOVE(st[i + 16], st[i + 24], 0x00ff00ff00ff00ff, 8);
+    }
+}
+
+#    else
+#        define pack2_6(B)   pack(B)
+#        define unpack2_6(B) unpack(B)
+#    endif
+
+#endif
+
 #endif

@@ -37,12 +37,23 @@ pub fn build(b: *std.Build) void {
         .source_dir = b.path("src/include"),
     });
 
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("src/include/aegis.h"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    translate_c.addIncludePath(b.path("src/include"));
+    const aegis_c_mod = translate_c.createModule();
+
     const test_mod = b.createModule(.{
         .root_source_file = b.path("src/test/main.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "aegis", .module = aegis_c_mod },
+        },
     });
-    test_mod.addIncludePath(b.path("src/include"));
     test_mod.linkLibrary(lib);
 
     const main_tests = b.addTest(.{
@@ -57,8 +68,10 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/test/benchmark.zig"),
         .target = target,
         .optimize = optimize,
+        .imports = &.{
+            .{ .name = "aegis", .module = aegis_c_mod },
+        },
     });
-    bench_mod.addIncludePath(b.path("src/include"));
     bench_mod.linkLibrary(lib);
 
     const benchmark = b.addExecutable(.{

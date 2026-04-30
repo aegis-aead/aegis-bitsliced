@@ -1,7 +1,9 @@
-const aegis = @cImport(@cInclude("aegis.h"));
+const aegis = @import("aegis");
 const std = @import("std");
-const random = std.crypto.random;
 const testing = std.testing;
+
+var prng = std.Random.DefaultPrng.init(0);
+const random = prng.random();
 
 const max_msg_len: usize = 1000;
 const max_ad_len: usize = 1000;

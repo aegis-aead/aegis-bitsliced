@@ -49,10 +49,11 @@ sbox(Sbox u)
     const uint32_t t20 = NAND(q6, q12);
     const uint32_t t21 = NAND(q3, q14);
     const uint32_t t22 = NAND(q1, q16);
+    const uint32_t t23 = NAND(q2, q17);
     const uint32_t x0  = NOR(q3, q14) ^ NAND(q0, q7) ^ (t20 ^ t22);
     const uint32_t x1  = NOR(q4, q13) ^ NAND(q10, q11) ^ (t21 ^ t20);
     const uint32_t x2  = NOR(q2, q17) ^ NAND(q5, q9) ^ (t21 ^ t22);
-    const uint32_t x3  = NOR(q8, q15) ^ NAND(q2, q17) ^ (t21 ^ NAND(q4, q13));
+    const uint32_t x3  = NOR(q8, q15) ^ t23 ^ (t21 ^ NAND(q4, q13));
 
     const uint32_t t2  = XNOR(NAND(x0, x2), NOR(x1, x3));
     const uint32_t y0  = MUX(x2, t2, x3);
@@ -422,10 +423,11 @@ sbox2(Sbox u)
     const uint32_t T20 = NAND(Q6, Q12);
     const uint32_t T21 = NAND(Q3, Q14);
     const uint32_t T22 = NAND(Q1, Q16);
+    const uint32_t T23 = NAND(Q2, Q17);
     const uint32_t T10 = (NOR(Q3, Q14) ^ NAND(Q0, Q7));
     const uint32_t T11 = (NOR(Q4, Q13) ^ NAND(Q10, Q11));
     const uint32_t T12 = (NOR(Q2, Q17) ^ NAND(Q5, Q9));
-    const uint32_t T13 = (NOR(Q8, Q15) ^ NAND(Q2, Q17));
+    const uint32_t T13 = (NOR(Q8, Q15) ^ T23);
     const uint32_t X0  = T10 ^ (T20 ^ T22);
     const uint32_t X1  = T11 ^ (T21 ^ T20);
     const uint32_t X2  = T12 ^ (T21 ^ T22);

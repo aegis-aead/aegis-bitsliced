@@ -50,10 +50,11 @@ sbox(Sbox u)
     const uint64_t t20 = NAND(q6, q12);
     const uint64_t t21 = NAND(q3, q14);
     const uint64_t t22 = NAND(q1, q16);
+    const uint64_t t23 = NAND(q2, q17);
     const uint64_t x0  = NOR(q3, q14) ^ NAND(q0, q7) ^ (t20 ^ t22);
     const uint64_t x1  = NOR(q4, q13) ^ NAND(q10, q11) ^ (t21 ^ t20);
     const uint64_t x2  = NOR(q2, q17) ^ NAND(q5, q9) ^ (t21 ^ t22);
-    const uint64_t x3  = NOR(q8, q15) ^ NAND(q2, q17) ^ (t21 ^ NAND(q4, q13));
+    const uint64_t x3  = NOR(q8, q15) ^ t23 ^ (t21 ^ NAND(q4, q13));
 
     const uint64_t t2  = XNOR(NAND(x0, x2), NOR(x1, x3));
     const uint64_t y0  = MUX(x2, t2, x3);
@@ -449,10 +450,11 @@ sbox2(Sbox u)
     const uint64_t t20 = NAND(q6, q12);
     const uint64_t t21 = NAND(q3, q14);
     const uint64_t t22 = NAND(q1, q16);
+    const uint64_t t23 = NAND(q2, q17);
     const uint64_t x0  = NOR(q3, q14) ^ NAND(q0, q7) ^ (t20 ^ t22);
     const uint64_t x1  = NOR(q4, q13) ^ NAND(q10, q11) ^ (t21 ^ t20);
     const uint64_t x2  = NOR(q2, q17) ^ NAND(q5, q9) ^ (t21 ^ t22);
-    const uint64_t x3  = NOR(q8, q15) ^ NAND(q2, q17) ^ (t21 ^ NAND(q4, q13));
+    const uint64_t x3  = NOR(q8, q15) ^ t23 ^ (t21 ^ NAND(q4, q13));
 
     const uint64_t t2  = XNOR(NAND(x0, x2), NOR(x1, x3));
     const uint64_t y0  = MUX(x2, t2, x3);

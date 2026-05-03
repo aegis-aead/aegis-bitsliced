@@ -266,6 +266,35 @@ pack04(AesBlocks st)
 }
 
 static void
+unpack04(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x33333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x33333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x33333333, 2);
+        SWAPMOVE(st[i + 2], st[i], 0x33333333, 2);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x55555555, 1);
+        SWAPMOVE(st[i + 1], st[i], 0x55555555, 1);
+    }
+
+    SWAPMOVE(st[12], st[12 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[4], st[4 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff, 16);
+
+    SWAPMOVE(st[4 + 16], st[4 + 24], 0x00ff00ff, 8);
+    SWAPMOVE(st[4], st[4 + 8], 0x00ff00ff, 8);
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff, 8);
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff, 8);
+}
+
+static void
 pack(AesBlocks st)
 {
     size_t i;
@@ -335,6 +364,60 @@ blocks_rotr(AesBlocks st)
     for (i = 0; i < 32; i++) {
         st[i] = (st[i] & 0xfefefefe) >> 1 | (st[i] & 0x01010101) << 7;
     }
+}
+
+static inline void
+blocks_rotr6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i++) {
+        st[i] = ((st[i] & 0xf8f8f8f8) >> 1) | ((st[i] & 0x04040404) << 5);
+    }
+}
+
+static void
+pack04_6(AesBlocks st)
+{
+    size_t i;
+
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff, 8);
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff, 8);
+
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff, 16);
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x55555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x33333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x33333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f, 4);
+    }
+}
+
+static void
+unpack04_6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x33333333, 2);
+        SWAPMOVE(st[i + 2], st[i], 0x33333333, 2);
+        SWAPMOVE(st[i + 1], st[i], 0x55555555, 1);
+    }
+
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff, 16);
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff, 16);
+
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff, 8);
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff, 8);
 }
 
 static inline void
@@ -685,10 +768,74 @@ unpack2(AesBlocks st)
     }
 }
 
+static void
+pack2_6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 8], 0x00ff00ff, 8);
+        SWAPMOVE(st[i + 16], st[i + 24], 0x00ff00ff, 8);
+    }
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff, 16);
+    }
+    for (i = 8; i < 14; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff, 16);
+    }
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x55555555, 1);
+        SWAPMOVE(st[i + 3], st[i + 2], 0x55555555, 1);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x55555555, 1);
+        SWAPMOVE(st[i + 7], st[i + 6], 0x55555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x33333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x33333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x33333333, 2);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x33333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f, 4);
+    }
+}
+
+static void
+unpack2_6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 1], st[i], 0x55555555, 1);
+        SWAPMOVE(st[i + 3], st[i + 2], 0x55555555, 1);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x55555555, 1);
+        SWAPMOVE(st[i + 7], st[i + 6], 0x55555555, 1);
+        SWAPMOVE(st[i + 2], st[i], 0x33333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x33333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x33333333, 2);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x33333333, 2);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f, 4);
+    }
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff, 16);
+    }
+    for (i = 8; i < 14; i++) {
+        SWAPMOVE(st[i], st[i + 16], 0x0000ffff, 16);
+    }
+    for (i = 0; i < 6; i++) {
+        SWAPMOVE(st[i], st[i + 8], 0x00ff00ff, 8);
+        SWAPMOVE(st[i + 16], st[i + 24], 0x00ff00ff, 8);
+    }
+}
+
 #    else
 #        define aes_round2(B) aes_round(B)
 #        define pack2(B)      pack(B)
 #        define unpack2(B)    unpack(B)
+#        define pack2_6(B)    pack(B)
+#        define unpack2_6(B)  unpack(B)
 #    endif
 
 #endif

@@ -13,8 +13,6 @@
 
 #    include "aes-bs8x2.h"
 
-#    undef KEEP_STATE_BITSLICED
-
 #    define RATE      32
 #    define ALIGNMENT 32
 
@@ -60,6 +58,31 @@ aegis_pack_constant_input(AesBlocks st, const AesBlock m)
         st[word_idx(0, i)] = m[i];
     }
     pack04_6(st);
+}
+
+static void
+aegis_unpack_state(AesBlocks unpacked, const AesBlocks packed)
+{
+    memcpy(unpacked, packed, sizeof(AesBlocks));
+    unpack_6(unpacked);
+}
+
+static void
+aegis256x2_keystream_packed(AesBlock z, const AesBlocks st)
+{
+    AesBlocks z_packed;
+    size_t    i;
+
+    for (i = 0; i < 32 * 2; i++) {
+        const uint32_t x = st[i];
+
+        z_packed[i] = ((x & 0x40404040) << 1) ^ ((x & 0x08080808) << 4) ^ ((x & 0x04040404) << 5) ^
+                      (((x & 0x20202020) << 2) & ((x & 0x10101010) << 3));
+    }
+    unpack04_6(z_packed);
+    for (i = 0; i < 4 * 2; i++) {
+        z[i] = z_packed[word_idx(0, i)];
+    }
 }
 
 static inline void
@@ -109,9 +132,9 @@ aegis256x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 #    ifdef KEEP_STATE_BITSLICED
     {
         const AesBlocks constant_ctx_mask = {
-            0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 17, 0, 0,  0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0,  0, 17, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,  0, 0,
+            0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0,  0, 0, 0, 0,
+            0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 20, 0, 0, 0, 0,
+            0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,  0, 0,
         };
         AesBlocks constant_input_k0, constant_input_k1, constant_input_k0n0, constant_input_k1n1;
 
@@ -130,7 +153,6 @@ aegis256x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
             blocks_xor(st, constant_ctx_mask);
             aegis_round_packed(st, constant_input_k1n1);
         }
-        unpack_6(st);
     }
 #    else
     {
@@ -194,6 +216,18 @@ aegis256x2_enc(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
     AesBlock out;
     size_t   i;
 
+#    ifdef KEEP_STATE_BITSLICED
+    aegis256x2_keystream_packed(z, st);
+    block_from_bytes(t, src);
+    {
+        AesBlocks constant_input;
+
+        aegis_pack_constant_input(constant_input, t);
+        aegis_round_packed(st, constant_input);
+    }
+    block_xor(out, t, z);
+    block_to_bytes(dst, out);
+#    else
     for (i = 0; i < 4 * 2; i++) {
         z[i] = st[word_idx(1, i)] ^ st[word_idx(4, i)] ^ st[word_idx(5, i)] ^
                (st[word_idx(2, i)] & st[word_idx(3, i)]);
@@ -203,20 +237,33 @@ aegis256x2_enc(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
     aegis_absorb_rate(st, t);
     block_xor(out, t, z);
     block_to_bytes(dst, out);
+#    endif
 }
 
 static void
 aegis256x2_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
 {
     AesBlock msg;
+    AesBlock z;
     size_t   i;
 
     block_from_bytes(msg, src);
+#    ifdef KEEP_STATE_BITSLICED
+    aegis256x2_keystream_packed(z, st);
+    block_xor(msg, msg, z);
+    {
+        AesBlocks constant_input;
+
+        aegis_pack_constant_input(constant_input, msg);
+        aegis_round_packed(st, constant_input);
+    }
+#    else
     for (i = 0; i < 4 * 2; i++) {
         msg[i] ^= st[word_idx(1, i)] ^ st[word_idx(4, i)] ^ st[word_idx(5, i)] ^
                   (st[word_idx(2, i)] & st[word_idx(3, i)]);
     }
     aegis_update(st, msg);
+#    endif
     block_to_bytes(dst, msg);
 }
 
@@ -225,22 +272,37 @@ aegis256x2_declast(uint8_t *const dst, const uint8_t *const src, size_t len, Aes
 {
     uint8_t  pad[RATE];
     AesBlock msg;
+    AesBlock z;
     size_t   i;
 
     memset(pad, 0, sizeof pad);
     memcpy(pad, src, len);
 
     block_from_bytes(msg, pad);
+#    ifdef KEEP_STATE_BITSLICED
+    aegis256x2_keystream_packed(z, st);
+    block_xor(msg, msg, z);
+#    else
     for (i = 0; i < 4 * 2; i++) {
         msg[i] ^= st[word_idx(1, i)] ^ st[word_idx(4, i)] ^ st[word_idx(5, i)] ^
                   (st[word_idx(2, i)] & st[word_idx(3, i)]);
     }
     aegis_round(st);
+#    endif
     block_to_bytes(pad, msg);
     memset(pad + len, 0, sizeof pad - len);
     memcpy(dst, pad, len);
     block_from_bytes(msg, pad);
+#    ifdef KEEP_STATE_BITSLICED
+    {
+        AesBlocks constant_input;
+
+        aegis_pack_constant_input(constant_input, msg);
+        aegis_round_packed(st, constant_input);
+    }
+#    else
     aegis_absorb_rate(st, msg);
+#    endif
 }
 
 static void
@@ -260,10 +322,14 @@ aegis256x2_mac(uint8_t *mac, size_t maclen, size_t adlen, size_t mlen, AesBlocks
 
 #    ifdef KEEP_STATE_BITSLICED
     {
+        AesBlocks unpacked;
         AesBlocks constant_input;
 
+        aegis_unpack_state(unpacked, st);
+        for (i = 0; i < 4 * 2; i++) {
+            tmp[i] ^= st[word_idx(3, i)] ^ unpacked[word_idx(3, i)];
+        }
         aegis_pack_constant_input(constant_input, tmp);
-        pack_6(st);
         for (i = 0; i < 7; i++) {
             aegis_round_packed(st, constant_input);
         }
@@ -304,19 +370,17 @@ aegis256x2_absorb_ad(AesBlocks st, uint8_t tmp[RATE], const uint8_t *ad, const s
 {
     size_t i;
 
-    if (adlen > 2 * RATE) {
-        pack_6(st);
-        for (i = 0; i + RATE <= adlen; i += RATE) {
-            aegis256x2_absorb_packed(ad + i, st);
-        }
-        if (adlen % RATE) {
-            memset(tmp, 0, RATE);
-            memcpy(tmp, ad + i, adlen % RATE);
-            aegis256x2_absorb_packed(tmp, st);
-        }
-        unpack_6(st);
-        return;
+#    ifdef KEEP_STATE_BITSLICED
+    for (i = 0; i + RATE <= adlen; i += RATE) {
+        aegis256x2_absorb_packed(ad + i, st);
     }
+    if (adlen % RATE) {
+        memset(tmp, 0, RATE);
+        memcpy(tmp, ad + i, adlen % RATE);
+        aegis256x2_absorb_packed(tmp, st);
+    }
+    return;
+#    endif
     for (i = 0; i + RATE <= adlen; i += RATE) {
         aegis256x2_absorb(ad + i, st);
     }

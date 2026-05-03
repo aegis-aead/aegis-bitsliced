@@ -69,9 +69,9 @@ The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_k
 
 In the bitsliced representation, rotating the state only requires a bit rotation across all bytes.
 
-In the initialization, associated data absorption, and finalization functions of AEGIS-128L, the state can be maintained in the bitsliced form until the final update round.
+The state is kept in bitsliced form across initialization, associated data absorption, message processing, and finalization. The update round can then be applied without packing and unpacking the full state every time.
 
-However, the keystream is a linear combination of nearly all AES blocks. Evaluating this in bitsliced form would be slightly more costly than switching representations at each step update. Therefore, after initialization, we retain an interleaved but non-bitsliced state. We could keep the state bitsliced, unpack a copy to evaluate the linear combination, and only repack the two input blocks. However, in practice, this does not seem worthwhile.
+The keystream is a linear combination of AES blocks. Instead of unpacking the full state to evaluate it, the implementation computes the required block expressions directly in the packed lanes, then applies a partial unpack only for the output block or blocks. Message input is packed only into the active input lanes before the next round.
 
 These representation changes are costly. However, with 10 8-block AES rounds, AES-128 encrypts only 8 blocks, while AEGIS-128L encrypts 20. Additionally, AEGIS provides integrity with minimal overhead, while AES-GCM’s GMAC is costly, especially on CPUs without carryless multiplication support or lookup tables.
 

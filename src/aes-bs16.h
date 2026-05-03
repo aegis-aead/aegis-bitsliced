@@ -267,6 +267,35 @@ pack04(AesBlocks st)
 }
 
 static void
+unpack04(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 7], st[i + 5], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 6], st[i + 4], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 2], st[i], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 5], st[i + 4], 0x5555555555555555, 1);
+        SWAPMOVE(st[i + 1], st[i], 0x5555555555555555, 1);
+    }
+
+    SWAPMOVE(st[12], st[12 + 16], 0x0000ffff0000ffff, 16);
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff0000ffff, 16);
+    SWAPMOVE(st[4], st[4 + 16], 0x0000ffff0000ffff, 16);
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff0000ffff, 16);
+
+    SWAPMOVE(st[4 + 16], st[4 + 24], 0x00ff00ff00ff00ff, 8);
+    SWAPMOVE(st[4], st[4 + 8], 0x00ff00ff00ff00ff, 8);
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff00ff00ff, 8);
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff00ff00ff, 8);
+}
+
+static void
 pack(AesBlocks st)
 {
     size_t i;
@@ -707,7 +736,7 @@ blocks_rotr6(AesBlocks st)
     size_t i;
 
     for (i = 0; i < 32; i++) {
-        st[i] = ((st[i] & 0x1f1f1f1f1f1f1f1f) << 1) | ((st[i] & 0x2020202020202020) >> 5);
+        st[i] = ((st[i] & 0xf8f8f8f8f8f8f8f8) >> 1) | ((st[i] & 0x0404040404040404) << 5);
     }
 }
 
@@ -731,6 +760,28 @@ pack04_6(AesBlocks st)
         SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f0f0f0f0f, 4);
         SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f0f0f0f0f, 4);
     }
+}
+
+static void
+unpack04_6(AesBlocks st)
+{
+    size_t i;
+
+    for (i = 0; i < 32; i += 8) {
+        SWAPMOVE(st[i + 7], st[i + 3], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 6], st[i + 2], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 5], st[i + 1], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 4], st[i], 0x0f0f0f0f0f0f0f0f, 4);
+        SWAPMOVE(st[i + 3], st[i + 1], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 2], st[i], 0x3333333333333333, 2);
+        SWAPMOVE(st[i + 1], st[i], 0x5555555555555555, 1);
+    }
+
+    SWAPMOVE(st[8], st[8 + 16], 0x0000ffff0000ffff, 16);
+    SWAPMOVE(st[0], st[0 + 16], 0x0000ffff0000ffff, 16);
+
+    SWAPMOVE(st[0 + 16], st[0 + 24], 0x00ff00ff00ff00ff, 8);
+    SWAPMOVE(st[0], st[0 + 8], 0x00ff00ff00ff00ff, 8);
 }
 
 #ifdef KEEP_STATE_BITSLICED

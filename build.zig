@@ -12,6 +12,9 @@ pub fn build(b: *std.Build) void {
 
     lib_mod.addIncludePath(b.path("src/include"));
 
+    const keep_state_bitsliced = b.option(bool, "keep-state-bitsliced", "Keep AEGIS state bitsliced across calls") orelse false;
+    const c_flags: []const []const u8 = if (keep_state_bitsliced) &.{"-DKEEP_STATE_BITSLICED=1"} else &.{};
+
     lib_mod.addCSourceFiles(.{
         .files = &.{
             "src/common.c",
@@ -22,6 +25,7 @@ pub fn build(b: *std.Build) void {
             "src/aegis256x2.c",
             "src/aegis256x2_64.c",
         },
+        .flags = c_flags,
     });
 
     const lib = b.addLibrary(.{

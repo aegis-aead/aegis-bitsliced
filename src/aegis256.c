@@ -73,7 +73,7 @@ aegis256_keystream_packed(AesBlock z, const AesBlocks st)
     for (i = 0; i < 32; i++) {
         const uint32_t x = st[i];
 
-        z_packed[i] = ((x & 0x08080808) << 4) ^ ((x & 0x04040404) << 5) ^
+        z_packed[i] = ((x & 0x40404040) << 1) ^ ((x & 0x08080808) << 4) ^ ((x & 0x04040404) << 5) ^
                       (((x & 0x20202020) << 2) & ((x & 0x10101010) << 3));
     }
     unpack04_6(z_packed);
@@ -193,7 +193,8 @@ aegis256_enc(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
     block_to_bytes(dst, out);
 #else
     for (i = 0; i < 4; i++) {
-        z[i] = st[word_idx(4, i)] ^ st[word_idx(5, i)] ^ (st[word_idx(2, i)] & st[word_idx(3, i)]);
+        z[i] = st[word_idx(1, i)] ^ st[word_idx(4, i)] ^ st[word_idx(5, i)] ^
+               (st[word_idx(2, i)] & st[word_idx(3, i)]);
     }
     aegis_round(st);
     block_from_bytes(t, src);
@@ -222,8 +223,8 @@ aegis256_dec(uint8_t *const dst, const uint8_t *const src, AesBlocks st)
     }
 #else
     for (i = 0; i < 4; i++) {
-        msg[i] ^=
-            st[word_idx(4, i)] ^ st[word_idx(5, i)] ^ (st[word_idx(2, i)] & st[word_idx(3, i)]);
+        msg[i] ^= st[word_idx(1, i)] ^ st[word_idx(4, i)] ^ st[word_idx(5, i)] ^
+                  (st[word_idx(2, i)] & st[word_idx(3, i)]);
     }
     aegis_update(st, msg);
 #endif
@@ -247,8 +248,8 @@ aegis256_declast(uint8_t *const dst, const uint8_t *const src, size_t len, AesBl
     block_xor(msg, msg, z);
 #else
     for (i = 0; i < 4; i++) {
-        msg[i] ^=
-            st[word_idx(4, i)] ^ st[word_idx(5, i)] ^ (st[word_idx(2, i)] & st[word_idx(3, i)]);
+        msg[i] ^= st[word_idx(1, i)] ^ st[word_idx(4, i)] ^ st[word_idx(5, i)] ^
+                  (st[word_idx(2, i)] & st[word_idx(3, i)]);
     }
     aegis_round(st);
 #endif

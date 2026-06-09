@@ -138,11 +138,19 @@ aegis128x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 
 #    ifdef KEEP_STATE_BITSLICED
     {
+#        ifdef SBOX_VECTORIZED
+        const AesBlocks constant_ctx_mask = {
+            0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 17, 17, 0, 0,
+        };
+#        else
         const AesBlocks constant_ctx_mask = {
             0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0,  0, 0, 0, 0,
             0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 17, 0, 0, 0, 0,
             0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,  0, 0,
         };
+#        endif
         AesBlocks constant_input;
 
         aegis_pack_constant_input(constant_input, n, k);

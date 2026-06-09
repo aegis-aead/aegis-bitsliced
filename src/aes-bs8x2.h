@@ -26,6 +26,252 @@ typedef uint8_t  AesBlocksBytes[2048];
 typedef uint8_t  AesBlockBytesBase[16];
 typedef uint8_t  AesBlockBytes[32];
 
+#if (defined(__clang__) || defined(__GNUC__)) && defined(NATIVE_LITTLE_ENDIAN) &&     \
+    (defined(__SSE2__) || defined(__ARM_NEON) || defined(__wasm_simd128__) ||          \
+     defined(__ALTIVEC__)) &&                                                          \
+    !defined(AEGIS_NO_VECTOR_SBOX)
+#    define SBOX_VECTORIZED
+#endif
+
+#ifdef SBOX_VECTORIZED
+
+typedef uint32_t Vec __attribute__((vector_size(16)));
+typedef uint8_t  VecBytes __attribute__((vector_size(16)));
+
+#    define LANEROT1(V) __builtin_shufflevector((V), (V), 1, 2, 3, 0)
+#    define LANEROT2(V) __builtin_shufflevector((V), (V), 2, 3, 0, 1)
+
+/* The four 8-bit-plane groups of each state half go through identical, independent sbox circuits,
+ * so they are evaluated as the lanes of 4x32-bit vectors. transpose4() turns the four rows of
+ * bit-plane words into those lane vectors and back. */
+static inline void
+transpose4(Vec *a, Vec *b, Vec *c, Vec *d)
+{
+    const Vec t0 = __builtin_shufflevector(*a, *b, 0, 4, 1, 5);
+    const Vec t1 = __builtin_shufflevector(*a, *b, 2, 6, 3, 7);
+    const Vec t2 = __builtin_shufflevector(*c, *d, 0, 4, 1, 5);
+    const Vec t3 = __builtin_shufflevector(*c, *d, 2, 6, 3, 7);
+
+    *a = __builtin_shufflevector(t0, t2, 0, 1, 4, 5);
+    *b = __builtin_shufflevector(t0, t2, 2, 3, 6, 7);
+    *c = __builtin_shufflevector(t1, t3, 0, 1, 4, 5);
+    *d = __builtin_shufflevector(t1, t3, 2, 3, 6, 7);
+}
+
+static inline void
+sbox_vec(Vec u[8])
+{
+    const Vec s0  = u[1] ^ u[4];
+    const Vec s1  = u[5] ^ u[7];
+    const Vec s2  = u[3] ^ s0;
+    const Vec s3  = u[0] ^ u[2];
+    const Vec q0  = s1 ^ s2;
+    const Vec s4  = u[0] ^ u[6];
+    const Vec s5  = u[2] ^ u[6];
+    const Vec s6  = u[3] ^ s1;
+    const Vec s7  = u[5] ^ s3;
+    const Vec q1  = s1 ^ s5;
+    const Vec q2  = u[2] ^ q0;
+    const Vec q3  = s4 ^ s2;
+    const Vec q4  = s3 ^ q0;
+    const Vec s8  = u[4] ^ s3;
+    const Vec q5  = s6 ^ s8;
+    const Vec q6  = u[2] ^ u[3];
+    const Vec q7  = u[6] ^ s2;
+    const Vec s9  = u[6] ^ s0;
+    const Vec q8  = s3 ^ s9;
+    const Vec q9  = s4 ^ s6;
+    const Vec q10 = s0 ^ s5;
+    const Vec q12 = u[7] ^ s2;
+    const Vec q13 = u[1] ^ s7;
+    const Vec q14 = u[7] ^ s3;
+    const Vec q15 = s2 ^ s7;
+    const Vec q16 = u[1] ^ s1;
+    const Vec q17 = u[1] ^ u[7];
+    const Vec q11 = u[5];
+
+    const Vec t20 = q6 & q12;
+    const Vec t21 = q3 & q14;
+    const Vec t22 = q1 & q16;
+    const Vec t23 = q2 & q17;
+    const Vec x0  = ((q3 | q14) ^ (q0 & q7))   ^ (t20 ^ t22);
+    const Vec x1  = ((q4 | q13) ^ (q10 & q11)) ^ (t21 ^ t20);
+    const Vec x2  = ((q2 | q17) ^ (q5 & q9))   ^ (t21 ^ t22);
+    const Vec x3  = ((q8 | q15) ^ t23)         ^ (t21 ^ (q4 & q13));
+
+    const Vec a   = x1 & ~x3;
+    const Vec b   = x0 & ~x3;
+    const Vec c   = x3 & ~x1;
+    const Vec d   = x2 & ~x1;
+    const Vec e   = x0 ^ a;
+    const Vec y0  = x3 ^ (x2 & ~e);
+    const Vec f   = x1 ^ b;
+    const Vec y1  = c ^ (x2 & f);
+    const Vec g   = x2 ^ c;
+    const Vec y2  = x1 ^ (x0 & ~g);
+    const Vec h   = x3 ^ d;
+    const Vec y3  = a ^ (x0 & h);
+    const Vec y02 = y2 ^ y0;
+    const Vec y13 = y3 ^ y1;
+    const Vec y23 = y3 ^ y2;
+    const Vec y01 = y1 ^ y0;
+    const Vec y00 = y02 ^ y13;
+
+    const Vec a0  = y01 & q11;
+    const Vec a1  = y0  & q12;
+    const Vec a2  = y1  & q0;
+    const Vec a3  = y23 & q17;
+    const Vec a4  = y2  & q5;
+    const Vec a5  = y3  & q15;
+    const Vec a6  = y13 & q14;
+    const Vec a7  = y00 & q16;
+    const Vec a8  = y02 & q13;
+    const Vec a9  = y01 & q7;
+    const Vec a10 = y0  & q10;
+    const Vec a11 = y1  & q6;
+    const Vec a12 = y23 & q2;
+    const Vec a13 = y2  & q9;
+    const Vec a14 = y3  & q8;
+    const Vec a15 = y13 & q3;
+    const Vec a16 = y00 & q1;
+    const Vec a17 = y02 & q4;
+
+    const Vec r0  = a1 ^ a5;
+    const Vec r1  = a9 ^ a15;
+    const Vec r2  = a4 ^ r0;
+    const Vec r3  = a2 ^ a10;
+    const Vec r4  = a11 ^ a17;
+    const Vec r5  = a8 ^ r1;
+    const Vec r6  = a0 ^ a16;
+    const Vec r7  = a7 ^ a13;
+    const Vec r8  = a11 ^ a14;
+    const Vec r9  = r3 ^ r4;
+    const Vec r10 = r5 ^ r6;
+    const Vec r11 = r2 ^ r9;
+    const Vec r12 = a3 ^ r0;
+    const Vec r13 = r7 ^ r8;
+    const Vec r14 = r12 ^ r13;
+    u[0]          = r10 ^ r14;
+    const Vec r15 = a6 ^ a10;
+    const Vec r16 = r15 ^ r2;
+    u[1]          = ~(r10 ^ r16);
+    u[2]          = ~(a2 ^ r2);
+    const Vec r17 = a12 ^ a13;
+    const Vec r18 = a15 ^ r17;
+    u[3]          = r18 ^ r11;
+    const Vec r19 = a1 ^ a14;
+    const Vec r20 = a17 ^ r3;
+    const Vec r21 = r7 ^ r19;
+    const Vec r22 = r5 ^ r20;
+    u[4]          = r21 ^ r22;
+    const Vec r23 = a9 ^ a12;
+    u[5]          = r8 ^ r23;
+    u[6]          = ~(r1 ^ r4);
+    u[7]          = ~(a16 ^ r11);
+}
+
+/* Rotate the 32-bit words of group 1 left by 24, group 2 by 16 and group 3 by 8. The rotation
+ * amounts are all multiples of 8, so this is a single byte shuffle per bit-plane vector. */
+static inline Vec
+shiftrows_vec(const Vec v)
+{
+    const VecBytes b = (VecBytes) v;
+
+    return (Vec) __builtin_shufflevector(b, b, 0, 1, 2, 3, 5, 6, 7, 4, 10, 11, 8, 9, 15, 12, 13,
+                                         14);
+}
+
+/* Bitsliced mixcolumns: with D_k = V_k ^ rot1(V_k) and S_k the XOR of the three other lanes of
+ * V_k, the new bit-plane k is D_{k+1} ^ S_k, with the reduction term D_0 also folded into planes
+ * 3, 4, 6 and 7. Scheduled so that each D_k is consumed as soon as it is produced to keep the
+ * number of live vectors low. */
+static inline void
+mixcolumns_vec(Vec u[8])
+{
+    const Vec r0 = LANEROT1(u[0]);
+    const Vec d0 = u[0] ^ r0;
+    const Vec s0 = r0 ^ LANEROT2(d0);
+    const Vec r1 = LANEROT1(u[1]);
+    const Vec d1 = u[1] ^ r1;
+    const Vec s1 = r1 ^ LANEROT2(d1);
+    const Vec r2 = LANEROT1(u[2]);
+    const Vec d2 = u[2] ^ r2;
+    const Vec s2 = r2 ^ LANEROT2(d2);
+    const Vec r3 = LANEROT1(u[3]);
+    const Vec d3 = u[3] ^ r3;
+    const Vec s3 = r3 ^ LANEROT2(d3);
+    const Vec r4 = LANEROT1(u[4]);
+    const Vec d4 = u[4] ^ r4;
+    const Vec s4 = r4 ^ LANEROT2(d4);
+    const Vec r5 = LANEROT1(u[5]);
+    const Vec d5 = u[5] ^ r5;
+    const Vec s5 = r5 ^ LANEROT2(d5);
+    const Vec r6 = LANEROT1(u[6]);
+    const Vec d6 = u[6] ^ r6;
+    const Vec s6 = r6 ^ LANEROT2(d6);
+    const Vec r7 = LANEROT1(u[7]);
+    const Vec d7 = u[7] ^ r7;
+    const Vec s7 = r7 ^ LANEROT2(d7);
+
+    u[0] = d1 ^ s0;
+    u[1] = d2 ^ s1;
+    u[2] = d3 ^ s2;
+    u[3] = d4 ^ d0 ^ s3;
+    u[4] = d5 ^ d0 ^ s4;
+    u[5] = d6 ^ s5;
+    u[6] = d7 ^ d0 ^ s6;
+    u[7] = d0 ^ s7;
+}
+
+static void
+aes_round_(AesBlocksBases st)
+{
+    Vec    r[8];
+    Vec    u[8];
+    size_t i;
+
+    memcpy(r, st, sizeof(AesBlocksBases));
+    u[0] = r[0];
+    u[1] = r[2];
+    u[2] = r[4];
+    u[3] = r[6];
+    u[4] = r[1];
+    u[5] = r[3];
+    u[6] = r[5];
+    u[7] = r[7];
+    transpose4(&u[0], &u[1], &u[2], &u[3]);
+    transpose4(&u[4], &u[5], &u[6], &u[7]);
+
+    sbox_vec(u);
+
+    for (i = 0; i < 8; i++) {
+        u[i] = shiftrows_vec(u[i]);
+    }
+
+    mixcolumns_vec(u);
+
+    transpose4(&u[0], &u[1], &u[2], &u[3]);
+    transpose4(&u[4], &u[5], &u[6], &u[7]);
+    r[0] = u[0];
+    r[2] = u[1];
+    r[4] = u[2];
+    r[6] = u[3];
+    r[1] = u[4];
+    r[3] = u[5];
+    r[5] = u[6];
+    r[7] = u[7];
+    memcpy(st, r, sizeof(AesBlocksBases));
+}
+
+static void
+aes_round(AesBlocks st)
+{
+    aes_round_(st + 32 * 0);
+    aes_round_(st + 32 * 1);
+}
+
+#else
+
 static void
 sbox(Sbox u)
 {
@@ -283,6 +529,8 @@ aes_round(AesBlocks st)
     shiftrows(st);
     mixcolumns(st);
 }
+
+#endif
 
 static void
 pack04_(AesBlocksBases st)

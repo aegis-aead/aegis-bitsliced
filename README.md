@@ -79,6 +79,8 @@ AEGIS-128X2 can be implemented using 64-bit words, or using two sets of 8 blocks
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 
+In the barrel-shiftrows representation, the four 8-bit-plane groups go through identical, independent sbox circuits. On targets with vector extensions (SSE2, NEON, AltiVec), these four groups are evaluated as the lanes of 4x32-bit vectors rather than relying on autovectorization. The state words are permuted so that the lane vectors are contiguous in memory and the AES round needs no transposes; the scalar code uses the same permuted layout. On WebAssembly, the SIMD path turned out to be slower than scalar code, so it is not used there.
+
 These implementations use the SBOX circuits from [Maximov & Ekdahl](https://eprint.iacr.org/2019/802.pdf). A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
 
 | Sbox circuit                     | AEGIS-128L speed (Mb/s) |
@@ -102,4 +104,4 @@ Lastly, side-channel protection is generally unnecessary during decryption, as a
 zig build -Drelease=true
 ```
 
-This builds a static `aegis` library along with its headers into `zig-out/`, as well as a `benchmark` executable. Add `-Dkeep-state-bitsliced=true` to keep the state in bitsliced form between calls. The test suite runs with `zig build test -Drelease=true`.
+This builds a static `aegis` library along with its headers into `zig-out/`, as well as a `benchmark` executable. Add `-Dkeep-state-bitsliced=true` to keep the state in bitsliced form between calls, and `-Dno-vector-sbox=true` to force the scalar sbox implementation on platforms with vector extensions. The test suite runs with `zig build test -Drelease=true`.

@@ -46,8 +46,8 @@ With this representation, AEGIS-128L/128X2 consistently outperform AES128-GCM in
 | :----------------------------------- | -----------: |
 | AES-128-GCM (boringssl, bitsliced)   |          480 |
 | AES-128-GCM (zig, _unprotected_)     |         1040 |
-| AEGIS-128X2 (bitsliced)              |         2912 |
-| AEGIS-128L (bitsliced)               |         2241 |
+| AEGIS-128X2 (bitsliced)              |         3154 |
+| AEGIS-128L (bitsliced)               |         3429 |
 | AEGIS-128L (libaegis, _unprotected_) |         4232 |
 
 **ARM Cortex M4 (Flipper Zero):**

@@ -13,7 +13,18 @@ pub fn build(b: *std.Build) void {
     lib_mod.addIncludePath(b.path("src/include"));
 
     const keep_state_bitsliced = b.option(bool, "keep-state-bitsliced", "Keep AEGIS state bitsliced across calls") orelse false;
-    const c_flags: []const []const u8 = if (keep_state_bitsliced) &.{"-DKEEP_STATE_BITSLICED=1"} else &.{};
+    const no_vector_sbox = b.option(bool, "no-vector-sbox", "Force the scalar sbox/round implementation") orelse false;
+    var c_flags_buf: [2][]const u8 = undefined;
+    var c_flags_len: usize = 0;
+    if (keep_state_bitsliced) {
+        c_flags_buf[c_flags_len] = "-DKEEP_STATE_BITSLICED=1";
+        c_flags_len += 1;
+    }
+    if (no_vector_sbox) {
+        c_flags_buf[c_flags_len] = "-DAEGIS_NO_VECTOR_SBOX=1";
+        c_flags_len += 1;
+    }
+    const c_flags: []const []const u8 = c_flags_buf[0..c_flags_len];
 
     lib_mod.addCSourceFiles(.{
         .files = &.{

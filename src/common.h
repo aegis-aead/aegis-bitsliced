@@ -11,9 +11,6 @@
 
 /* Keep the state in bitsliced representation during initialization and finalization */
 #define KEEP_STATE_BITSLICED
-/* Force the compiler to emit different versions of functions that aren't always inlined (ex: pack)
- in order to avoid performance regressions when KEEP_STATE_BITSLICED is set */
-#define ALT_REGISTER_ALLOCATION
 
 #if (defined(__WORDSIZE) && __WORDSIZE >= 64) || ((UINT_MAX >> 63) > 0) || \
     (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ >= 8) || defined(__wasm__)

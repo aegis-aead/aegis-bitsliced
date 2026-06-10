@@ -69,9 +69,9 @@ The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_k
 
 In the bitsliced representation, rotating the state only requires a bit rotation across all bytes.
 
-The state is kept in bitsliced form across initialization, associated data absorption, message processing, and finalization. The update round can then be applied without packing and unpacking the full state every time.
+By default, the state is stored unpacked, and every update packs it, applies the AES round, and unpacks the result. With the `-Dkeep-state-bitsliced` build option, the state is instead kept in bitsliced form across initialization, associated data absorption, message processing, and finalization, so the update round can be applied without packing and unpacking the full state every time.
 
-The keystream is a linear combination of AES blocks. Instead of unpacking the full state to evaluate it, the implementation computes the required block expressions directly in the packed lanes, then applies a partial unpack only for the output block or blocks. Message input is packed only into the active input lanes before the next round.
+In that mode, the keystream, a combination of AES blocks, is not evaluated by unpacking the full state. The implementation computes the required block expressions directly in the packed lanes, then applies a partial unpack only for the output block or blocks. Message input is packed only into the active input lanes before the next round.
 
 These representation changes are costly. However, with 10 8-block AES rounds, AES-128 encrypts only 8 blocks, while AEGIS-128L encrypts 20. Additionally, AEGIS provides integrity with minimal overhead, while AES-GCM’s GMAC is costly, especially on CPUs without carryless multiplication support or lookup tables.
 
@@ -79,7 +79,7 @@ AEGIS-128X2 can be implemented using 64-bit words, or using two sets of 8 blocks
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 
-These implementations uses the SBOX circuits from Maximov & Ekdahl. A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
+These implementations use the SBOX circuits from [Maximov & Ekdahl](https://eprint.iacr.org/2019/802.pdf). A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
 
 | Sbox circuit                     | AEGIS-128L speed (Mb/s) |
 | :------------------------------- | ----------------------: |
@@ -95,3 +95,11 @@ These implementations uses the SBOX circuits from Maximov & Ekdahl. A comparison
 | jbkk3_BPD16D_4AD_33NLs_154XORs   |                  376.64 |
 
 Lastly, side-channel protection is generally unnecessary during decryption, as an adversary cannot observe individual blocks or conduct differential attacks at that stage.
+
+## Building
+
+```sh
+zig build -Drelease=true
+```
+
+This builds a static `aegis` library along with its headers into `zig-out/`, as well as a `benchmark` executable. Add `-Dkeep-state-bitsliced=true` to keep the state in bitsliced form between calls. The test suite runs with `zig build test -Drelease=true`.

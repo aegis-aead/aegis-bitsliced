@@ -132,9 +132,9 @@ aegis256x2_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
 #    ifdef KEEP_STATE_BITSLICED
     {
         const AesBlocks constant_ctx_mask = {
-            0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0,  0, 0, 0, 0,
-            0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 20, 0, 0, 0, 0,
-            0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,  0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0,  0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 20, 20, 0, 0,
         };
         AesBlocks constant_input_k0, constant_input_k1, constant_input_k0n0, constant_input_k1n1;
 

@@ -19,13 +19,12 @@
 
 typedef CRYPTO_ALIGN(32) uint64_t AesBlock[4];
 typedef CRYPTO_ALIGN(64) uint64_t AesBlocks[32];
-typedef uint8_t  AesBlocksBytes[2048];
-typedef uint8_t  AesBlockBytesBase[16];
-typedef uint8_t  AesBlockBytes[32];
+typedef uint8_t AesBlocksBytes[2048];
+typedef uint8_t AesBlockBytesBase[16];
+typedef uint8_t AesBlockBytes[32];
 
-#if (defined(__clang__) || defined(__GNUC__)) && defined(NATIVE_LITTLE_ENDIAN) &&     \
-    (defined(__SSE2__) || defined(__ARM_NEON) || defined(__wasm_simd128__) ||          \
-     defined(__ALTIVEC__)) &&                                                          \
+#if (defined(__clang__) || defined(__GNUC__)) && defined(NATIVE_LITTLE_ENDIAN) && \
+    (defined(__SSE2__) || defined(__ARM_NEON) || defined(__ALTIVEC__)) &&         \
     !defined(AEGIS_NO_VECTOR_SBOX)
 #    define SBOX_VECTORIZED
 #endif
@@ -79,10 +78,10 @@ sbox_vec(Vec u[8])
     const Vec t21 = q3 & q14;
     const Vec t22 = q1 & q16;
     const Vec t23 = q2 & q17;
-    const Vec x0  = ((q3 | q14) ^ (q0 & q7))   ^ (t20 ^ t22);
+    const Vec x0  = ((q3 | q14) ^ (q0 & q7)) ^ (t20 ^ t22);
     const Vec x1  = ((q4 | q13) ^ (q10 & q11)) ^ (t21 ^ t20);
-    const Vec x2  = ((q2 | q17) ^ (q5 & q9))   ^ (t21 ^ t22);
-    const Vec x3  = ((q8 | q15) ^ t23)         ^ (t21 ^ (q4 & q13));
+    const Vec x2  = ((q2 | q17) ^ (q5 & q9)) ^ (t21 ^ t22);
+    const Vec x3  = ((q8 | q15) ^ t23) ^ (t21 ^ (q4 & q13));
 
     const Vec a   = x1 & ~x3;
     const Vec b   = x0 & ~x3;
@@ -103,20 +102,20 @@ sbox_vec(Vec u[8])
     const Vec y00 = y02 ^ y13;
 
     const Vec a0  = y01 & q11;
-    const Vec a1  = y0  & q12;
-    const Vec a2  = y1  & q0;
+    const Vec a1  = y0 & q12;
+    const Vec a2  = y1 & q0;
     const Vec a3  = y23 & q17;
-    const Vec a4  = y2  & q5;
-    const Vec a5  = y3  & q15;
+    const Vec a4  = y2 & q5;
+    const Vec a5  = y3 & q15;
     const Vec a6  = y13 & q14;
     const Vec a7  = y00 & q16;
     const Vec a8  = y02 & q13;
     const Vec a9  = y01 & q7;
-    const Vec a10 = y0  & q10;
-    const Vec a11 = y1  & q6;
+    const Vec a10 = y0 & q10;
+    const Vec a11 = y1 & q6;
     const Vec a12 = y23 & q2;
-    const Vec a13 = y2  & q9;
-    const Vec a14 = y3  & q8;
+    const Vec a13 = y2 & q9;
+    const Vec a14 = y3 & q8;
     const Vec a15 = y13 & q3;
     const Vec a16 = y00 & q1;
     const Vec a17 = y02 & q4;
@@ -163,9 +162,9 @@ shiftrows_vec(const Vec v)
 {
     const VecBytes b = (VecBytes) v;
 
-    return (Vec) __builtin_shufflevector(b, b, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 8, 13, 14, 15,
-                                         12, 18, 19, 16, 17, 22, 23, 20, 21, 27, 24, 25, 26, 31,
-                                         28, 29, 30);
+    return (Vec) __builtin_shufflevector(b, b, 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 8, 13, 14, 15, 12,
+                                         18, 19, 16, 17, 22, 23, 20, 21, 27, 24, 25, 26, 31, 28, 29,
+                                         30);
 }
 
 /* Bitsliced mixcolumns: with D_k = V_k ^ rot1(V_k) and S_k the XOR of the three other lanes of
@@ -271,10 +270,10 @@ sbox(uint64_t *u)
     const uint64_t t21 = q3 & q14;
     const uint64_t t22 = q1 & q16;
     const uint64_t t23 = q2 & q17;
-    const uint64_t x0  = ((q3 | q14) ^ (q0 & q7))    ^ (t20 ^ t22);
-    const uint64_t x1  = ((q4 | q13) ^ (q10 & q11))  ^ (t21 ^ t20);
-    const uint64_t x2  = ((q2 | q17) ^ (q5 & q9))    ^ (t21 ^ t22);
-    const uint64_t x3  = ((q8 | q15) ^ t23)          ^ (t21 ^ (q4 & q13));
+    const uint64_t x0  = ((q3 | q14) ^ (q0 & q7)) ^ (t20 ^ t22);
+    const uint64_t x1  = ((q4 | q13) ^ (q10 & q11)) ^ (t21 ^ t20);
+    const uint64_t x2  = ((q2 | q17) ^ (q5 & q9)) ^ (t21 ^ t22);
+    const uint64_t x3  = ((q8 | q15) ^ t23) ^ (t21 ^ (q4 & q13));
 
     const uint64_t a   = x1 & ~x3;
     const uint64_t b   = x0 & ~x3;
@@ -295,20 +294,20 @@ sbox(uint64_t *u)
     const uint64_t y00 = y02 ^ y13;
 
     const uint64_t a0  = y01 & q11;
-    const uint64_t a1  = y0  & q12;
-    const uint64_t a2  = y1  & q0;
+    const uint64_t a1  = y0 & q12;
+    const uint64_t a2  = y1 & q0;
     const uint64_t a3  = y23 & q17;
-    const uint64_t a4  = y2  & q5;
-    const uint64_t a5  = y3  & q15;
+    const uint64_t a4  = y2 & q5;
+    const uint64_t a5  = y3 & q15;
     const uint64_t a6  = y13 & q14;
     const uint64_t a7  = y00 & q16;
     const uint64_t a8  = y02 & q13;
     const uint64_t a9  = y01 & q7;
-    const uint64_t a10 = y0  & q10;
-    const uint64_t a11 = y1  & q6;
+    const uint64_t a10 = y0 & q10;
+    const uint64_t a11 = y1 & q6;
     const uint64_t a12 = y23 & q2;
-    const uint64_t a13 = y2  & q9;
-    const uint64_t a14 = y3  & q8;
+    const uint64_t a13 = y2 & q9;
+    const uint64_t a14 = y3 & q8;
     const uint64_t a15 = y13 & q3;
     const uint64_t a16 = y00 & q1;
     const uint64_t a17 = y02 & q4;
@@ -335,16 +334,16 @@ sbox(uint64_t *u)
     u[8]               = ~(a2 ^ r2);
     const uint64_t r17 = a12 ^ a13;
     const uint64_t r18 = a15 ^ r17;
-    u[12]               = r18 ^ r11;
+    u[12]              = r18 ^ r11;
     const uint64_t r19 = a1 ^ a14;
     const uint64_t r20 = a17 ^ r3;
     const uint64_t r21 = r7 ^ r19;
     const uint64_t r22 = r5 ^ r20;
-    u[16]               = r21 ^ r22;
+    u[16]              = r21 ^ r22;
     const uint64_t r23 = a9 ^ a12;
-    u[20]               = r8 ^ r23;
-    u[24]               = ~(r1 ^ r4);
-    u[28]               = ~(a16 ^ r11);
+    u[20]              = r8 ^ r23;
+    u[24]              = ~(r1 ^ r4);
+    u[28]              = ~(a16 ^ r11);
 }
 
 static void
@@ -385,7 +384,7 @@ mixcolumns(AesBlocks st)
     t0_2   = st[30] ^ st[31];
     t0_3   = st[31] ^ st[28];
     t      = st[28];
-    st[28]  = t2_0 ^ t0_2 ^ st[29];
+    st[28] = t2_0 ^ t0_2 ^ st[29];
     st[29] = t2_1 ^ t0_2 ^ t;
     t      = st[30];
     st[30] = t2_2 ^ t0_0 ^ st[31];
@@ -395,7 +394,7 @@ mixcolumns(AesBlocks st)
     t1_2   = st[26] ^ st[27];
     t1_3   = st[27] ^ st[24];
     t      = st[24];
-    st[24]  = t0_0 ^ t2_0 ^ st[25] ^ t1_2;
+    st[24] = t0_0 ^ t2_0 ^ st[25] ^ t1_2;
     t_bis  = st[25];
     st[25] = t0_1 ^ t2_1 ^ t1_2 ^ t;
     t      = st[26];
@@ -406,7 +405,7 @@ mixcolumns(AesBlocks st)
     t0_2   = st[22] ^ st[23];
     t0_3   = st[23] ^ st[20];
     t      = st[20];
-    st[20]  = t1_0 ^ t0_1 ^ st[23];
+    st[20] = t1_0 ^ t0_1 ^ st[23];
     t_bis  = st[21];
     st[21] = t1_1 ^ t0_2 ^ t;
     t      = st[22];
@@ -417,7 +416,7 @@ mixcolumns(AesBlocks st)
     t1_2   = st[18] ^ st[19];
     t1_3   = st[19] ^ st[16];
     t      = st[16];
-    st[16]  = t0_0 ^ t2_0 ^ t1_1 ^ st[19];
+    st[16] = t0_0 ^ t2_0 ^ t1_1 ^ st[19];
     t_bis  = st[17];
     st[17] = t0_1 ^ t2_1 ^ t1_2 ^ t;
     t      = st[18];
@@ -428,7 +427,7 @@ mixcolumns(AesBlocks st)
     t0_2   = st[14] ^ st[15];
     t0_3   = st[15] ^ st[12];
     t      = st[12];
-    st[12]  = t1_0 ^ t2_0 ^ t0_1 ^ st[15];
+    st[12] = t1_0 ^ t2_0 ^ t0_1 ^ st[15];
     t_bis  = st[13];
     st[13] = t1_1 ^ t2_1 ^ t0_2 ^ t;
     t      = st[14];
@@ -441,7 +440,7 @@ mixcolumns(AesBlocks st)
     t      = st[8];
     st[8]  = t0_0 ^ t1_1 ^ st[11];
     t_bis  = st[9];
-    st[9] = t0_1 ^ t1_2 ^ t;
+    st[9]  = t0_1 ^ t1_2 ^ t;
     t      = st[10];
     st[10] = t0_2 ^ t1_3 ^ t_bis;
     st[11] = t0_3 ^ t1_0 ^ t;
@@ -454,15 +453,15 @@ mixcolumns(AesBlocks st)
     t_bis  = st[5];
     st[5]  = t1_1 ^ t0_2 ^ t;
     t      = st[6];
-    st[6] = t1_2 ^ t0_3 ^ t_bis;
-    st[7] = t1_3 ^ t0_0 ^ t;
+    st[6]  = t1_2 ^ t0_3 ^ t_bis;
+    st[7]  = t1_3 ^ t0_0 ^ t;
     t      = st[0];
     st[0]  = t0_0 ^ t2_1 ^ st[3];
     t_bis  = st[1];
     st[1]  = t0_1 ^ t2_2 ^ t;
     t      = st[2];
-    st[2] = t0_2 ^ t2_3 ^ t_bis;
-    st[3] = t0_3 ^ t2_0 ^ t;
+    st[2]  = t0_2 ^ t2_3 ^ t_bis;
+    st[3]  = t0_3 ^ t2_0 ^ t;
 }
 
 static void

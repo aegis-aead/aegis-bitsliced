@@ -69,9 +69,11 @@ The state update function is defined as `S_i ← AES(in=S_{(i-1) mod 8}, round_k
 
 In the bitsliced representation, rotating the state only requires a bit rotation across all bytes.
 
-By default, the state is stored unpacked, and every update packs it, applies the AES round, and unpacks the result. With the `-Dkeep-state-bitsliced` build option, the state is instead kept in bitsliced form across initialization, associated data absorption, message processing, and finalization, so the update round can be applied without packing and unpacking the full state every time.
+The state is kept in bitsliced form across initialization, associated data absorption, message processing, and finalization, so the update round can be applied without packing and unpacking the full state every time.
 
-In that mode, the keystream, a combination of AES blocks, is not evaluated by unpacking the full state. The implementation computes the required block expressions directly in the packed lanes, then applies a partial unpack only for the output block or blocks. Message input is packed only into the active input lanes before the next round.
+The keystream, a combination of AES blocks, is not evaluated by unpacking the full state. The implementation computes the required block expressions directly in the packed lanes, then applies a partial unpack only for the output block or blocks. Message input is packed only into the active input lanes before the next round. For a single lane, both conversions collapse into a closed form: bit-plane `k` of the byte-transposed block lands in plane word `k` at bit position 7, so injection is one mask and one shift per plane, and extraction is the mirrored OR-gather.
+
+On targets with vector extensions, bulk associated data and message processing additionally runs in fused loops that keep the state in vector registers (or a hot local buffer, for the 64-bit doubled variants, whose working set exceeds the vector register file) instead of crossing the function-call and memory boundary once per block. For AEGIS-128L, where six of the eight blocks feed the keystream, the bulk loop works on the unpacked state — the round packs and unpacks its batch in registers — and converts from and to the packed resident state once per run.
 
 These representation changes are costly. However, with 10 8-block AES rounds, AES-128 encrypts only 8 blocks, while AEGIS-128L encrypts 20. Additionally, AEGIS provides integrity with minimal overhead, while AES-GCM’s GMAC is costly, especially on CPUs without carryless multiplication support or lookup tables.
 
@@ -79,7 +81,11 @@ AEGIS-128X2 can be implemented using 64-bit words, or using two sets of 8 blocks
 
 While a dedicated bitsliced representation could further improve performance, straightforward implementations using existing AES representations enable AEGIS to achieve strong performance with side-channel protection, even on CPUs lacking AES instructions.
 
-In the barrel-shiftrows representation, the four 8-bit-plane groups go through identical, independent sbox circuits. On targets with vector extensions (SSE2, NEON, AltiVec), these four groups are evaluated as the lanes of 4x32-bit vectors rather than relying on autovectorization. The state words are permuted so that the lane vectors are contiguous in memory and the AES round needs no transposes; the scalar code uses the same permuted layout. On WebAssembly, the SIMD path turned out to be slower than scalar code, so it is not used there.
+In the barrel-shiftrows representation, the four 8-bit-plane groups go through identical, independent sbox circuits. On targets with vector extensions (SSE2, NEON, AltiVec, WebAssembly SIMD), these four groups are evaluated as the lanes of 4x32-bit vectors rather than relying on autovectorization. The state words are permuted so that the lane vectors are contiguous in memory and the AES round needs no transposes; the scalar code uses the same permuted layout.
+
+On WebAssembly, the vector path requires the `simd128` target feature, for example `-Dcpu=lime1+simd128`.
+With it, the bitsliced implementations run 2 to 3.3 times faster than the scalar code under wasmtime.
+AEGIS-128L uses the packed-state bulk loop there instead of the unpacked one, since the per-block pack/unpack round-trip costs more than the closed-form lane crossings on that target.
 
 These implementations use the SBOX circuits from [Maximov & Ekdahl](https://eprint.iacr.org/2019/802.pdf). A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
 
@@ -104,4 +110,4 @@ Lastly, side-channel protection is generally unnecessary during decryption, as a
 zig build -Drelease=true
 ```
 
-This builds a static `aegis` library along with its headers into `zig-out/`, as well as a `benchmark` executable. Add `-Dkeep-state-bitsliced=true` to keep the state in bitsliced form between calls, and `-Dno-vector-sbox=true` to force the scalar sbox implementation on platforms with vector extensions. The test suite runs with `zig build test -Drelease=true`.
+This builds a static `aegis` library along with its headers into `zig-out/`, as well as a `benchmark` executable. Add `-Dno-vector-sbox=true` to force the scalar sbox implementation on platforms with vector extensions. The test suite runs with `zig build test -Drelease=true`.

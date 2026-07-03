@@ -22,9 +22,10 @@ typedef CRYPTO_ALIGN(32) uint32_t AesBlocks[32];
 typedef uint8_t AesBlocksBytes[1024];
 typedef uint8_t AesBlockBytes[16];
 
-#if (defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)) &&      \
-    defined(NATIVE_LITTLE_ENDIAN) &&                                      \
-    (defined(__SSE2__) || defined(__ARM_NEON) || defined(__ALTIVEC__)) && \
+#if (defined(__clang__) || (defined(__GNUC__) && __GNUC__ >= 12)) &&     \
+    defined(NATIVE_LITTLE_ENDIAN) &&                                     \
+    (defined(__SSE2__) || defined(__ARM_NEON) || defined(__ALTIVEC__) || \
+     defined(__wasm_simd128__)) &&                                       \
     !defined(AEGIS_NO_VECTOR_SBOX)
 #    define SBOX_VECTORIZED
 #endif
@@ -207,22 +208,106 @@ mixcolumns_vec(Vec u[8])
     u[7] = d0 ^ s7;
 }
 
+#    define VSPLAT(x) ((Vec) { (x), (x), (x), (x) })
+
+#    define SWAPMOVE_VEC(a, b, mask, n)                    \
+        do {                                               \
+            const Vec tmp = (b ^ (a >> n)) & VSPLAT(mask); \
+            b ^= tmp;                                      \
+            a ^= (tmp << n);                               \
+        } while (0)
+
+/* The byte-level pack stage only moves whole bytes, so it collapses into a single 4x4
+ * byte-matrix transpose per block: one shuffle instead of four SWAPMOVEs. It is its own
+ * inverse, so pack and unpack share it. */
+static inline Vec
+transpose_bytes_vec(const Vec v)
+{
+    const VecBytes b = (VecBytes) v;
+
+    return (Vec) __builtin_shufflevector(b, b, 0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10, 14, 3, 7, 11,
+                                         15);
+}
+
+/* Pack blocks 0..nb-1 into the barrel-shiftrows representation. The pack skips the swaps
+ * whose operands both stay inside the padding lanes; always_inline forces a specialized
+ * copy per constant `nb` instead of one generic function with runtime branches. */
+__attribute__((always_inline)) static inline void
+pack_q(Vec q[8], const size_t nb)
+{
+    size_t i;
+
+    for (i = nb; i < 8; i++) {
+        q[i] = VSPLAT(0);
+    }
+    for (i = 0; i < nb; i++) {
+        q[i] = transpose_bytes_vec(q[i]);
+    }
+
+    SWAPMOVE_VEC(q[1], q[0], 0x55555555, 1);
+    SWAPMOVE_VEC(q[3], q[2], 0x55555555, 1);
+    if (nb > 4) {
+        SWAPMOVE_VEC(q[5], q[4], 0x55555555, 1);
+    }
+    if (nb > 6) {
+        SWAPMOVE_VEC(q[7], q[6], 0x55555555, 1);
+    }
+    SWAPMOVE_VEC(q[2], q[0], 0x33333333, 2);
+    SWAPMOVE_VEC(q[3], q[1], 0x33333333, 2);
+    if (nb > 4) {
+        SWAPMOVE_VEC(q[6], q[4], 0x33333333, 2);
+        SWAPMOVE_VEC(q[7], q[5], 0x33333333, 2);
+    }
+    SWAPMOVE_VEC(q[4], q[0], 0x0f0f0f0f, 4);
+    SWAPMOVE_VEC(q[5], q[1], 0x0f0f0f0f, 4);
+    SWAPMOVE_VEC(q[6], q[2], 0x0f0f0f0f, 4);
+    SWAPMOVE_VEC(q[7], q[3], 0x0f0f0f0f, 4);
+}
+
+/* Inverse of pack_q for blocks 0..nb-1. The bit-level stage cannot skip any swap because
+ * padding-lane bits travel through every word. */
+__attribute__((always_inline)) static inline void
+unpack_q(Vec q[8], const size_t nb)
+{
+    size_t i;
+
+    SWAPMOVE_VEC(q[1], q[0], 0x55555555, 1);
+    SWAPMOVE_VEC(q[3], q[2], 0x55555555, 1);
+    SWAPMOVE_VEC(q[5], q[4], 0x55555555, 1);
+    SWAPMOVE_VEC(q[7], q[6], 0x55555555, 1);
+    SWAPMOVE_VEC(q[2], q[0], 0x33333333, 2);
+    SWAPMOVE_VEC(q[3], q[1], 0x33333333, 2);
+    SWAPMOVE_VEC(q[6], q[4], 0x33333333, 2);
+    SWAPMOVE_VEC(q[7], q[5], 0x33333333, 2);
+    SWAPMOVE_VEC(q[4], q[0], 0x0f0f0f0f, 4);
+    SWAPMOVE_VEC(q[5], q[1], 0x0f0f0f0f, 4);
+    SWAPMOVE_VEC(q[6], q[2], 0x0f0f0f0f, 4);
+    SWAPMOVE_VEC(q[7], q[3], 0x0f0f0f0f, 4);
+
+    for (i = 0; i < nb; i++) {
+        q[i] = transpose_bytes_vec(q[i]);
+    }
+}
+
+__attribute__((always_inline)) static inline void
+round_q(Vec q[8])
+{
+    size_t i;
+
+    sbox_vec(q);
+    for (i = 0; i < 8; i++) {
+        q[i] = shiftrows_vec(q[i]);
+    }
+    mixcolumns_vec(q);
+}
+
 static void
 aes_round(AesBlocks st)
 {
-    Vec    u[8];
-    size_t i;
+    Vec u[8];
 
     memcpy(u, st, sizeof(AesBlocks));
-
-    sbox_vec(u);
-
-    for (i = 0; i < 8; i++) {
-        u[i] = shiftrows_vec(u[i]);
-    }
-
-    mixcolumns_vec(u);
-
+    round_q(u);
     memcpy(st, u, sizeof(AesBlocks));
 }
 

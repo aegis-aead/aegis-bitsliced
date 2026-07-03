@@ -15,6 +15,20 @@
 static void
 aegis_round(AesBlocks st)
 {
+#ifdef SBOX_VECTORIZED
+    Vec    s[8], q[8];
+    size_t i;
+
+    memcpy(s, st, sizeof(AesBlocks));
+    memcpy(q, s, sizeof q);
+    pack_q(q, 6);
+    round_q(q);
+    unpack_q(q, 6);
+    for (i = 0; i < 6; i++) {
+        s[i] ^= q[(i + 5) % 6];
+    }
+    memcpy(st, s, sizeof(AesBlocks));
+#else
     AesBlocks st1;
     size_t    i;
 
@@ -29,6 +43,7 @@ aegis_round(AesBlocks st)
         st[word_idx(i, 2)] ^= st1[word_idx((i + 5) % 6, 2)];
         st[word_idx(i, 3)] ^= st1[word_idx((i + 5) % 6, 3)];
     }
+#endif
 }
 
 #ifdef KEEP_STATE_BITSLICED
@@ -98,6 +113,65 @@ aegis_update(AesBlocks st, const AesBlock m)
     aegis_round(st);
     aegis_absorb_rate(st, m);
 }
+
+#if defined(SBOX_VECTORIZED) && defined(KEEP_STATE_BITSLICED)
+
+#    define BULK_ABSORB 0
+#    define BULK_ENC    1
+#    define BULK_DEC    2
+
+/* Process whole 16-byte blocks with the packed state held in vector registers for the
+ * entire run. Lane 0 is the only lane that crosses the packed boundary, and a single
+ * block packs into lane 0 in closed form: bit-plane k of the byte-transposed block is
+ * plane word k at bit 7 of every byte, so injection is a mask and a shift per plane,
+ * and extraction is the mirrored OR-gather. The keystream is computed on shared shifted
+ * copies of each plane word and only the bit-7 position is kept. */
+__attribute__((always_inline)) static inline size_t
+aegis256_bulk(AesBlocks st, uint8_t *dst, const uint8_t *src, const size_t len, const int mode)
+{
+    Vec    s[8];
+    size_t i, k;
+
+    if (len < RATE) {
+        return 0;
+    }
+    memcpy(s, st, sizeof(AesBlocks));
+    for (i = 0; i + RATE <= len; i += RATE) {
+        Vec q[8], m, t;
+
+        memcpy(&m, src + i, AES_BLOCK_LENGTH);
+        if (mode != BULK_ABSORB) {
+            Vec zt = VSPLAT(0);
+
+            for (k = 0; k < 8; k++) {
+                const Vec x = s[k];
+                const Vec a = x << 1;
+                const Vec w = a ^ (a << 3) ^ (a << 4) ^ ((x & a) << 2);
+
+                zt |= (w & VSPLAT(0x80808080)) >> k;
+            }
+            if (mode == BULK_DEC) {
+                m ^= transpose_bytes_vec(zt);
+                memcpy(dst + i, &m, AES_BLOCK_LENGTH);
+            } else {
+                const Vec out = m ^ transpose_bytes_vec(zt);
+
+                memcpy(dst + i, &out, AES_BLOCK_LENGTH);
+            }
+        }
+        t = transpose_bytes_vec(m);
+        memcpy(q, s, sizeof q);
+        round_q(q);
+        for (k = 0; k < 8; k++) {
+            const Vec r = ((q[k] & VSPLAT(0xf8f8f8f8)) >> 1) | ((q[k] & VSPLAT(0x04040404)) << 5);
+
+            s[k] ^= r ^ ((t & VSPLAT(0x80808080u >> k)) << k);
+        }
+    }
+    memcpy(st, s, sizeof(AesBlocks));
+    return i;
+}
+#endif
 
 static void
 aegis256_init(const uint8_t *key, const uint8_t *nonce, AesBlocks st)
@@ -363,9 +437,13 @@ aegis256_encrypt_detached(uint8_t *c, uint8_t *mac, size_t maclen, const uint8_t
     aegis256_init(k, npub, state);
 
 #ifdef KEEP_STATE_BITSLICED
+#    ifdef SBOX_VECTORIZED
+    i = aegis256_bulk(state, NULL, ad, adlen, BULK_ABSORB);
+#    else
     for (i = 0; i + RATE <= adlen; i += RATE) {
         aegis256_absorb_packed(ad + i, state);
     }
+#    endif
     if (adlen % RATE) {
         memset(src, 0, RATE);
         memcpy(src, ad + i, adlen % RATE);
@@ -381,9 +459,13 @@ aegis256_encrypt_detached(uint8_t *c, uint8_t *mac, size_t maclen, const uint8_t
         aegis256_absorb(src, state);
     }
 #endif
+#if defined(SBOX_VECTORIZED) && defined(KEEP_STATE_BITSLICED)
+    i = aegis256_bulk(state, c, m, mlen, BULK_ENC);
+#else
     for (i = 0; i + RATE <= mlen; i += RATE) {
         aegis256_enc(c + i, m + i, state);
     }
+#endif
     if (mlen % RATE) {
         memset(src, 0, RATE);
         memcpy(src, m + i, mlen % RATE);
@@ -418,9 +500,13 @@ aegis256_decrypt_detached(uint8_t *m, const uint8_t *c, size_t clen, const uint8
     aegis256_init(k, npub, state);
 
 #ifdef KEEP_STATE_BITSLICED
+#    ifdef SBOX_VECTORIZED
+    i = aegis256_bulk(state, NULL, ad, adlen, BULK_ABSORB);
+#    else
     for (i = 0; i + RATE <= adlen; i += RATE) {
         aegis256_absorb_packed(ad + i, state);
     }
+#    endif
     if (adlen % RATE) {
         memset(src, 0, RATE);
         memcpy(src, ad + i, adlen % RATE);
@@ -437,9 +523,13 @@ aegis256_decrypt_detached(uint8_t *m, const uint8_t *c, size_t clen, const uint8
     }
 #endif
     if (m != NULL) {
+#if defined(SBOX_VECTORIZED) && defined(KEEP_STATE_BITSLICED)
+        i = aegis256_bulk(state, m, c, mlen, BULK_DEC);
+#else
         for (i = 0; i + RATE <= mlen; i += RATE) {
             aegis256_dec(m + i, c + i, state);
         }
+#endif
     } else {
         for (i = 0; i + RATE <= mlen; i += RATE) {
             aegis256_dec(dst, c + i, state);

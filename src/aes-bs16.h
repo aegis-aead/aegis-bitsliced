@@ -40,10 +40,11 @@ typedef uint8_t  VecBytes __attribute__((vector_size(32)));
 #    define LANEROT2(V) __builtin_shufflevector((V), (V), 2, 3, 0, 1)
 
 /* The four 8-bit-plane groups go through identical, independent sbox circuits, so they are
- * evaluated as the lanes of 4x64-bit vectors. The vectorized representation permutes the state
- * words so that bit-plane k of group g lives in word 4k+g instead of 8g+k: the lane vectors are
- * then contiguous in memory and aes_round needs no transposes. The pack/unpack networks and
- * word_idx below apply the same permutation to every word index. */
+ * evaluated as the lanes of 4x64-bit vectors.
+ * The vectorized representation permutes the state words so that bit-plane k of group g lives in
+ * word 4k+g instead of 8g+k: the lane vectors are then contiguous in memory and aes_round needs no
+ * transposes.
+ * The pack/unpack networks and word_idx below apply the same permutation to every word index. */
 static inline void
 sbox_vec(Vec u[8])
 {
@@ -157,8 +158,9 @@ sbox_vec(Vec u[8])
 }
 
 /* Rotate both 32-bit halves of the 64-bit words of group 1 left by 24, group 2 by 16 and group 3
- * by 8. The rotation amounts are all multiples of 8, so this is a single byte shuffle per
- * bit-plane vector. */
+ * by 8.
+ * The rotation amounts are all multiples of 8, so this is a single byte shuffle per bit-plane
+ * vector. */
 static inline Vec
 shiftrows_vec(const Vec v)
 {
@@ -171,8 +173,9 @@ shiftrows_vec(const Vec v)
 
 /* Bitsliced mixcolumns: with D_k = V_k ^ rot1(V_k) and S_k the XOR of the three other lanes of
  * V_k, the new bit-plane k is D_{k+1} ^ S_k, with the reduction term D_0 also folded into planes
- * 3, 4, 6 and 7. Scheduled so that each D_k is consumed as soon as it is produced to keep the
- * number of live vectors low. */
+ * 3, 4, 6 and 7.
+ * Scheduled so that each D_k is consumed as soon as it is produced to keep the number of live
+ * vectors low. */
 static inline void
 mixcolumns_vec(Vec u[8])
 {
@@ -220,9 +223,9 @@ mixcolumns_vec(Vec u[8])
             a ^= (tmp << n);                               \
         } while (0)
 
-/* The byte-level pack stage transposes the 4x4 byte matrix of each 32-bit half
- * independently, which is a single byte shuffle per block. It is its own inverse, so pack
- * and unpack share it. */
+/* The byte-level pack stage transposes the 4x4 byte matrix of each 32-bit half independently,
+ * which is a single byte shuffle per block.
+ * It is its own inverse, so pack and unpack share it. */
 static inline Vec
 transpose_bytes_vec(const Vec v)
 {
@@ -233,8 +236,8 @@ transpose_bytes_vec(const Vec v)
                                          31);
 }
 
-/* The doubled-block byte order: word j of the 64-bit representation holds word j of the
- * first 16-byte half in its high 32 bits and word j of the second half in its low 32 bits.
+/* The doubled-block byte order: word j of the 64-bit representation holds word j of the first
+ * 16-byte half in its high 32 bits and word j of the second half in its low 32 bits.
  * The store permutation is the inverse of the load permutation. */
 static inline Vec
 block_load_vec(const Vec v)
@@ -256,9 +259,9 @@ block_store_vec(const Vec v)
                                          26, 27);
 }
 
-/* Pack blocks 0..nb-1 into the barrel-shiftrows representation. The pack skips the swaps
- * whose operands both stay inside the padding lanes; always_inline forces a specialized
- * copy per constant `nb` instead of one generic function with runtime branches. */
+/* Pack blocks 0..nb-1 into the barrel-shiftrows representation.
+ * The pack skips the swaps whose operands both stay inside the padding lanes; always_inline forces
+ * a specialized copy per constant `nb` instead of one generic function with runtime branches. */
 __attribute__((always_inline)) static inline void
 pack_q(Vec q[8], const size_t nb)
 {
@@ -291,8 +294,8 @@ pack_q(Vec q[8], const size_t nb)
     SWAPMOVE_VEC(q[7], q[3], 0x0f0f0f0f0f0f0f0f, 4);
 }
 
-/* Inverse of pack_q for blocks 0..nb-1. The bit-level stage cannot skip any swap because
- * padding-lane bits travel through every word. */
+/* Inverse of pack_q for blocks 0..nb-1.
+ * The bit-level stage cannot skip any swap because padding-lane bits travel through every word. */
 __attribute__((always_inline)) static inline void
 unpack_q(Vec q[8], const size_t nb)
 {
@@ -340,10 +343,11 @@ aes_round(AesBlocks st)
 
 #else
 
-/* The scalar fallback uses the same permuted layout as the vectorized code: the four group
- * lanes of each bit-plane are adjacent words. The sbox is still evaluated one group at a
- * time to keep register pressure low, but shiftrows and mixcolumns work on adjacent
- * isomorphic quads that compilers with vector units can merge into wide registers. */
+/* The scalar fallback uses the same permuted layout as the vectorized code: the four group lanes
+ * of each bit-plane are adjacent words.
+ * The sbox is still evaluated one group at a time to keep register pressure low, but shiftrows and
+ * mixcolumns work on adjacent isomorphic quads that compilers with vector units can merge into
+ * wide registers. */
 static void
 sbox(uint64_t *u)
 {

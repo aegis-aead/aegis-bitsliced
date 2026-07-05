@@ -120,12 +120,12 @@ aegis_update(AesBlocks st, const AesBlock m)
 #    define BULK_ENC    1
 #    define BULK_DEC    2
 
-/* Process whole 16-byte blocks with the packed state held in vector registers for the
- * entire run. Lane 0 is the only lane that crosses the packed boundary, and a single
- * block packs into lane 0 in closed form: bit-plane k of the byte-transposed block is
- * plane word k at bit 7 of every byte, so injection is a mask and a shift per plane,
- * and extraction is the mirrored OR-gather. The keystream is computed on shared shifted
- * copies of each plane word and only the bit-7 position is kept. */
+/* Process whole 16-byte blocks with the packed state held in vector registers for the entire run.
+ * Lane 0 is the only lane that crosses the packed boundary, and a single block packs into lane 0
+ * in closed form: bit-plane k of the byte-transposed block is plane word k at bit 7 of every byte,
+ * so injection is a mask and a shift per plane, and extraction is the mirrored OR-gather.
+ * The keystream is computed on shared shifted copies of each plane word and only the bit-7
+ * position is kept. */
 __attribute__((always_inline)) static inline size_t
 aegis256_bulk(AesBlocks st, uint8_t *dst, const uint8_t *src, const size_t len, const int mode)
 {

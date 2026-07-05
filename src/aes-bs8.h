@@ -39,10 +39,11 @@ typedef uint8_t  VecBytes __attribute__((vector_size(16)));
 #    define LANEROT2(V) __builtin_shufflevector((V), (V), 2, 3, 0, 1)
 
 /* The four 8-bit-plane groups go through identical, independent sbox circuits, so they are
- * evaluated as the lanes of 4x32-bit vectors. The vectorized representation permutes the state
- * words so that bit-plane k of group g lives in word 4k+g instead of 8g+k: the lane vectors are
- * then contiguous in memory and aes_round needs no transposes. The pack/unpack networks and
- * word_idx below apply the same permutation to every word index. */
+ * evaluated as the lanes of 4x32-bit vectors.
+ * The vectorized representation permutes the state words so that bit-plane k of group g lives in
+ * word 4k+g instead of 8g+k: the lane vectors are then contiguous in memory and aes_round needs no
+ * transposes.
+ * The pack/unpack networks and word_idx below apply the same permutation to every word index. */
 static inline void
 sbox_vec(Vec u[8])
 {
@@ -155,8 +156,9 @@ sbox_vec(Vec u[8])
     u[7]          = ~(a16 ^ r11);
 }
 
-/* Rotate the 32-bit words of group 1 left by 24, group 2 by 16 and group 3 by 8. The rotation
- * amounts are all multiples of 8, so this is a single byte shuffle per bit-plane vector. */
+/* Rotate the 32-bit words of group 1 left by 24, group 2 by 16 and group 3 by 8.
+ * The rotation amounts are all multiples of 8, so this is a single byte shuffle per bit-plane
+ * vector. */
 static inline Vec
 shiftrows_vec(const Vec v)
 {
@@ -168,8 +170,9 @@ shiftrows_vec(const Vec v)
 
 /* Bitsliced mixcolumns: with D_k = V_k ^ rot1(V_k) and S_k the XOR of the three other lanes of
  * V_k, the new bit-plane k is D_{k+1} ^ S_k, with the reduction term D_0 also folded into planes
- * 3, 4, 6 and 7. Scheduled so that each D_k is consumed as soon as it is produced to keep the
- * number of live vectors low. */
+ * 3, 4, 6 and 7.
+ * Scheduled so that each D_k is consumed as soon as it is produced to keep the number of live
+ * vectors low. */
 static inline void
 mixcolumns_vec(Vec u[8])
 {
@@ -217,9 +220,9 @@ mixcolumns_vec(Vec u[8])
             a ^= (tmp << n);                               \
         } while (0)
 
-/* The byte-level pack stage only moves whole bytes, so it collapses into a single 4x4
- * byte-matrix transpose per block: one shuffle instead of four SWAPMOVEs. It is its own
- * inverse, so pack and unpack share it. */
+/* The byte-level pack stage only moves whole bytes, so it collapses into a single 4x4 byte-matrix
+ * transpose per block: one shuffle instead of four SWAPMOVEs.
+ * It is its own inverse, so pack and unpack share it. */
 static inline Vec
 transpose_bytes_vec(const Vec v)
 {
@@ -229,9 +232,9 @@ transpose_bytes_vec(const Vec v)
                                          15);
 }
 
-/* Pack blocks 0..nb-1 into the barrel-shiftrows representation. The pack skips the swaps
- * whose operands both stay inside the padding lanes; always_inline forces a specialized
- * copy per constant `nb` instead of one generic function with runtime branches. */
+/* Pack blocks 0..nb-1 into the barrel-shiftrows representation.
+ * The pack skips the swaps whose operands both stay inside the padding lanes; always_inline forces
+ * a specialized copy per constant `nb` instead of one generic function with runtime branches. */
 __attribute__((always_inline)) static inline void
 pack_q(Vec q[8], const size_t nb)
 {
@@ -264,8 +267,8 @@ pack_q(Vec q[8], const size_t nb)
     SWAPMOVE_VEC(q[7], q[3], 0x0f0f0f0f, 4);
 }
 
-/* Inverse of pack_q for blocks 0..nb-1. The bit-level stage cannot skip any swap because
- * padding-lane bits travel through every word. */
+/* Inverse of pack_q for blocks 0..nb-1.
+ * The bit-level stage cannot skip any swap because padding-lane bits travel through every word. */
 __attribute__((always_inline)) static inline void
 unpack_q(Vec q[8], const size_t nb)
 {
@@ -313,10 +316,11 @@ aes_round(AesBlocks st)
 
 #else
 
-/* The scalar fallback uses the same permuted layout as the vectorized code: the four group
- * lanes of each bit-plane are adjacent words. The sbox is still evaluated one group at a
- * time to keep register pressure low on 32-bit CPUs, but shiftrows and mixcolumns work on
- * adjacent isomorphic quads that compilers with vector units can merge into wide registers. */
+/* The scalar fallback uses the same permuted layout as the vectorized code: the four group lanes
+ * of each bit-plane are adjacent words.
+ * The sbox is still evaluated one group at a time to keep register pressure low on 32-bit CPUs,
+ * but shiftrows and mixcolumns work on adjacent isomorphic quads that compilers with vector units
+ * can merge into wide registers. */
 static void
 sbox(uint32_t *u)
 {

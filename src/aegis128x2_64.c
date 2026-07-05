@@ -120,12 +120,13 @@ aegis_update(AesBlocks st, const AesBlock m0, const AesBlock m1)
 #        define BULK_DEC    2
 
 /* Process whole 64-byte blocks with the unpacked state held in a local buffer and streamed
- * through vector registers once per batch. With 256-bit vectors the state plus the sbox
- * working set exceeds the vector register file, so parking the state in registers would
- * spill mid-round; explicit per-batch loads schedule better. The keystream, message I/O
- * and absorption are lane-aligned in the unpacked domain, so they cost a handful of vector
- * operations around the fused pack/round/unpack batch. When the state is kept packed
- * between calls, the conversion happens once per run, not once per block. */
+ * through vector registers once per batch.
+ * With 256-bit vectors the state plus the sbox working set exceeds the vector register file, so
+ * parking the state in registers would spill mid-round; explicit per-batch loads schedule better.
+ * The keystream, message I/O and absorption are lane-aligned in the unpacked domain, so they cost
+ * a handful of vector operations around the fused pack/round/unpack batch.
+ * When the state is kept packed between calls, the conversion happens once per run, not once per
+ * block. */
 __attribute__((always_inline)) static inline size_t
 aegis128x2_bulk(AesBlocks st, uint8_t *dst, const uint8_t *src, const size_t len, const int mode)
 {

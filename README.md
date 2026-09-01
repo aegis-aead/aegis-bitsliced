@@ -102,8 +102,6 @@ These implementations use the SBOX circuits from [Maximov & Ekdahl](https://epri
 | jbkk2_BPD17D_5AD_32NLs_142XORs   |                  395.75 |
 | jbkk3_BPD16D_4AD_33NLs_154XORs   |                  376.64 |
 
-Lastly, side-channel protection is generally unnecessary during decryption, as an adversary cannot observe individual blocks or conduct differential attacks at that stage.
-
 ## Building
 
 ```sh

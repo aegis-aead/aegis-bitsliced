@@ -45,37 +45,35 @@ typedef uint8_t  VecBytes __attribute__((vector_size(16)));
  * The vectorized representation permutes the words of each half so that bit-plane k of group g
  * lives in word 4k+g instead of 8g+k: the lane vectors are then contiguous in memory and aes_round
  * needs no transposes.
- * The pack/unpack networks and word_idx below apply the same permutation to every word index. */
+ * The pack/unpack networks and word_idx below apply the same permutation to every word index.
+ * The sbox circuit keeps Maximov and Ekdahl's nonlinear core, with linear layers re-synthesized
+ * for software: 119 gates instead of 126. */
 static inline void
 sbox_vec(Vec u[8])
 {
     const Vec s0  = u[1] ^ u[4];
-    const Vec s1  = u[5] ^ u[7];
-    const Vec s2  = u[3] ^ s0;
+    const Vec s1  = u[3] ^ s0;
+    const Vec s2  = u[5] ^ u[7];
     const Vec s3  = u[0] ^ u[2];
     const Vec q0  = s1 ^ s2;
-    const Vec s4  = u[0] ^ u[6];
-    const Vec s5  = u[2] ^ u[6];
-    const Vec s6  = u[3] ^ s1;
-    const Vec s7  = u[5] ^ s3;
-    const Vec q1  = s1 ^ s5;
-    const Vec q2  = u[2] ^ q0;
-    const Vec q3  = s4 ^ s2;
-    const Vec q4  = s3 ^ q0;
-    const Vec s8  = u[4] ^ s3;
-    const Vec q5  = s6 ^ s8;
-    const Vec q6  = u[2] ^ u[3];
-    const Vec q7  = u[6] ^ s2;
-    const Vec s9  = u[6] ^ s0;
-    const Vec q8  = s3 ^ s9;
-    const Vec q9  = s4 ^ s6;
-    const Vec q10 = s0 ^ s5;
-    const Vec q12 = u[7] ^ s2;
-    const Vec q13 = u[1] ^ s7;
+    const Vec s4  = u[6] ^ s0;
+    const Vec q7  = u[3] ^ s4;
     const Vec q14 = u[7] ^ s3;
-    const Vec q15 = s2 ^ s7;
-    const Vec q16 = u[1] ^ s1;
+    const Vec q16 = u[1] ^ s2;
     const Vec q17 = u[1] ^ u[7];
+    const Vec q6  = u[2] ^ u[3];
+    const Vec q13 = q14 ^ q16;
+    const Vec q12 = u[7] ^ s1;
+    const Vec q3  = u[0] ^ q7;
+    const Vec q8  = s3 ^ s4;
+    const Vec q10 = u[2] ^ s4;
+    const Vec s5  = u[2] ^ s2;
+    const Vec q2  = s1 ^ s5;
+    const Vec q1  = u[6] ^ s5;
+    const Vec q15 = q0 ^ q14;
+    const Vec q4  = s3 ^ q0;
+    const Vec q5  = q13 ^ q12;
+    const Vec q9  = q8 ^ q2;
     const Vec q11 = u[5];
 
     const Vec t20 = q6 & q12;
@@ -125,37 +123,47 @@ sbox_vec(Vec u[8])
     const Vec a17 = y02 & q4;
 
     const Vec r0  = a1 ^ a5;
-    const Vec r1  = a9 ^ a15;
-    const Vec r2  = a4 ^ r0;
-    const Vec r3  = a2 ^ a10;
+    const Vec r1  = a4 ^ r0;
+    const Vec r2  = a9 ^ a15;
+    const Vec r3  = a2 ^ r1;
     const Vec r4  = a11 ^ a17;
-    const Vec r5  = a8 ^ r1;
-    const Vec r6  = a0 ^ a16;
-    const Vec r7  = a7 ^ a13;
-    const Vec r8  = a11 ^ a14;
-    const Vec r9  = r3 ^ r4;
-    const Vec r10 = r5 ^ r6;
-    const Vec r11 = r2 ^ r9;
-    const Vec r12 = a3 ^ r0;
-    const Vec r13 = r7 ^ r8;
-    const Vec r14 = r12 ^ r13;
-    u[0]          = r10 ^ r14;
-    const Vec r15 = a6 ^ a10;
-    const Vec r16 = r15 ^ r2;
-    u[1]          = ~(r10 ^ r16);
-    u[2]          = ~(a2 ^ r2);
-    const Vec r17 = a12 ^ a13;
-    const Vec r18 = a15 ^ r17;
-    u[3]          = r18 ^ r11;
-    const Vec r19 = a1 ^ a14;
-    const Vec r20 = a17 ^ r3;
-    const Vec r21 = r7 ^ r19;
-    const Vec r22 = r5 ^ r20;
-    u[4]          = r21 ^ r22;
-    const Vec r23 = a9 ^ a12;
-    u[5]          = r8 ^ r23;
-    u[6]          = ~(r1 ^ r4);
-    u[7]          = ~(a16 ^ r11);
+    const Vec r5  = a8 ^ r2;
+    const Vec r6  = a10 ^ a16;
+    const Vec r7  = r3 ^ r4;
+    const Vec r8  = a10 ^ a13;
+    const Vec r9  = a11 ^ a14;
+    const Vec r10 = r7 ^ r8;
+    const Vec r11 = r1 ^ r5;
+    const Vec r12 = a0 ^ r6;
+    const Vec r13 = r11 ^ r12;
+    const Vec r14 = a7 ^ r9;
+    const Vec r15 = r2 ^ r4;
+    const Vec r16 = a9 ^ a12;
+    const Vec o5  = r9 ^ r16;
+    const Vec r17 = a6 ^ r13;
+    const Vec r18 = r6 ^ r7;
+    const Vec r19 = r2 ^ r16;
+    const Vec o3  = r10 ^ r19;
+    const Vec r20 = a1 ^ r14;
+    const Vec r21 = r11 ^ r20;
+    const Vec o4  = r10 ^ r21;
+    const Vec r22 = a3 ^ a4;
+    const Vec r23 = r8 ^ r14;
+    const Vec r24 = r22 ^ r23;
+    const Vec o0  = r13 ^ r24;
+    const Vec o1  = ~r17;
+    const Vec o2  = ~r3;
+    const Vec o6  = ~r15;
+    const Vec o7  = ~r18;
+
+    u[0]          = o0;
+    u[1]          = o1;
+    u[2]          = o2;
+    u[3]          = o3;
+    u[4]          = o4;
+    u[5]          = o5;
+    u[6]          = o6;
+    u[7]          = o7;
 }
 
 /* Rotate the 32-bit words of group 1 left by 24, group 2 by 16 and group 3 by 8.
@@ -250,32 +258,28 @@ static void
 sbox(uint32_t *u)
 {
     const uint32_t s0  = u[4] ^ u[16];
-    const uint32_t s1  = u[20] ^ u[28];
-    const uint32_t s2  = u[12] ^ s0;
+    const uint32_t s1  = u[12] ^ s0;
+    const uint32_t s2  = u[20] ^ u[28];
     const uint32_t s3  = u[0] ^ u[8];
     const uint32_t q0  = s1 ^ s2;
-    const uint32_t s4  = u[0] ^ u[24];
-    const uint32_t s5  = u[8] ^ u[24];
-    const uint32_t s6  = u[12] ^ s1;
-    const uint32_t s7  = u[20] ^ s3;
-    const uint32_t q1  = s1 ^ s5;
-    const uint32_t q2  = u[8] ^ q0;
-    const uint32_t q3  = s4 ^ s2;
-    const uint32_t q4  = s3 ^ q0;
-    const uint32_t s8  = u[16] ^ s3;
-    const uint32_t q5  = s6 ^ s8;
-    const uint32_t q6  = u[8] ^ u[12];
-    const uint32_t q7  = u[24] ^ s2;
-    const uint32_t s9  = u[24] ^ s0;
-    const uint32_t q8  = s3 ^ s9;
-    const uint32_t q9  = s4 ^ s6;
-    const uint32_t q10 = s0 ^ s5;
-    const uint32_t q12 = u[28] ^ s2;
-    const uint32_t q13 = u[4] ^ s7;
+    const uint32_t s4  = u[24] ^ s0;
+    const uint32_t q7  = u[12] ^ s4;
     const uint32_t q14 = u[28] ^ s3;
-    const uint32_t q15 = s2 ^ s7;
-    const uint32_t q16 = u[4] ^ s1;
+    const uint32_t q16 = u[4] ^ s2;
     const uint32_t q17 = u[4] ^ u[28];
+    const uint32_t q6  = u[8] ^ u[12];
+    const uint32_t q13 = q14 ^ q16;
+    const uint32_t q12 = u[28] ^ s1;
+    const uint32_t q3  = u[0] ^ q7;
+    const uint32_t q8  = s3 ^ s4;
+    const uint32_t q10 = u[8] ^ s4;
+    const uint32_t s5  = u[8] ^ s2;
+    const uint32_t q2  = s1 ^ s5;
+    const uint32_t q1  = u[24] ^ s5;
+    const uint32_t q15 = q0 ^ q14;
+    const uint32_t q4  = s3 ^ q0;
+    const uint32_t q5  = q13 ^ q12;
+    const uint32_t q9  = q8 ^ q2;
     const uint32_t q11 = u[20];
 
     const uint32_t t20 = q6 & q12;
@@ -325,37 +329,47 @@ sbox(uint32_t *u)
     const uint32_t a17 = y02 & q4;
 
     const uint32_t r0  = a1 ^ a5;
-    const uint32_t r1  = a9 ^ a15;
-    const uint32_t r2  = a4 ^ r0;
-    const uint32_t r3  = a2 ^ a10;
+    const uint32_t r1  = a4 ^ r0;
+    const uint32_t r2  = a9 ^ a15;
+    const uint32_t r3  = a2 ^ r1;
     const uint32_t r4  = a11 ^ a17;
-    const uint32_t r5  = a8 ^ r1;
-    const uint32_t r6  = a0 ^ a16;
-    const uint32_t r7  = a7 ^ a13;
-    const uint32_t r8  = a11 ^ a14;
-    const uint32_t r9  = r3 ^ r4;
-    const uint32_t r10 = r5 ^ r6;
-    const uint32_t r11 = r2 ^ r9;
-    const uint32_t r12 = a3 ^ r0;
-    const uint32_t r13 = r7 ^ r8;
-    const uint32_t r14 = r12 ^ r13;
-    u[0]               = r10 ^ r14;
-    const uint32_t r15 = a6 ^ a10;
-    const uint32_t r16 = r15 ^ r2;
-    u[4]               = ~(r10 ^ r16);
-    u[8]               = ~(a2 ^ r2);
-    const uint32_t r17 = a12 ^ a13;
-    const uint32_t r18 = a15 ^ r17;
-    u[12]              = r18 ^ r11;
-    const uint32_t r19 = a1 ^ a14;
-    const uint32_t r20 = a17 ^ r3;
-    const uint32_t r21 = r7 ^ r19;
-    const uint32_t r22 = r5 ^ r20;
-    u[16]              = r21 ^ r22;
-    const uint32_t r23 = a9 ^ a12;
-    u[20]              = r8 ^ r23;
-    u[24]              = ~(r1 ^ r4);
-    u[28]              = ~(a16 ^ r11);
+    const uint32_t r5  = a8 ^ r2;
+    const uint32_t r6  = a10 ^ a16;
+    const uint32_t r7  = r3 ^ r4;
+    const uint32_t r8  = a10 ^ a13;
+    const uint32_t r9  = a11 ^ a14;
+    const uint32_t r10 = r7 ^ r8;
+    const uint32_t r11 = r1 ^ r5;
+    const uint32_t r12 = a0 ^ r6;
+    const uint32_t r13 = r11 ^ r12;
+    const uint32_t r14 = a7 ^ r9;
+    const uint32_t r15 = r2 ^ r4;
+    const uint32_t r16 = a9 ^ a12;
+    const uint32_t o5  = r9 ^ r16;
+    const uint32_t r17 = a6 ^ r13;
+    const uint32_t r18 = r6 ^ r7;
+    const uint32_t r19 = r2 ^ r16;
+    const uint32_t o3  = r10 ^ r19;
+    const uint32_t r20 = a1 ^ r14;
+    const uint32_t r21 = r11 ^ r20;
+    const uint32_t o4  = r10 ^ r21;
+    const uint32_t r22 = a3 ^ a4;
+    const uint32_t r23 = r8 ^ r14;
+    const uint32_t r24 = r22 ^ r23;
+    const uint32_t o0  = r13 ^ r24;
+    const uint32_t o1  = ~r17;
+    const uint32_t o2  = ~r3;
+    const uint32_t o6  = ~r15;
+    const uint32_t o7  = ~r18;
+
+    u[0]               = o0;
+    u[4]               = o1;
+    u[8]               = o2;
+    u[12]              = o3;
+    u[16]              = o4;
+    u[20]              = o5;
+    u[24]              = o6;
+    u[28]              = o7;
 }
 
 static void

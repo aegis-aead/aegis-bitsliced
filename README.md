@@ -87,10 +87,13 @@ On WebAssembly, the vector path requires the `simd128` target feature, for examp
 With it, the bitsliced implementations run 2 to 3.3 times faster than the scalar code under wasmtime.
 AEGIS-128L uses the packed-state bulk loop there instead of the unpacked one, since the per-block pack/unpack round-trip costs more than the closed-form lane crossings on that target.
 
-These implementations use the SBOX circuits from [Maximov & Ekdahl](https://eprint.iacr.org/2019/802.pdf). A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found below:
+The SBOX circuit keeps the nonlinear core of the [Maximov & Ekdahl](https://eprint.iacr.org/2019/802.pdf) circuit, with the linear layers re-synthesized for software (arrival-time-aware Boyar-Peralta search): 119 gates instead of 126.
+
+A comparison against the circuits from [Jean, Baek, Kim G and Kim J](https://eprint.iacr.org/2024/1996.pdf) on Cortex A53 can be found elow:
 
 | Sbox circuit                     | AEGIS-128L speed (Mb/s) |
 | :------------------------------- | ----------------------: |
+| This work                        |                  424.91 |
 | Maximov & Ekdahl                 |                  423.02 |
 | depth16_RNBP28D_4AD_34NLs_81XORs |                  414.45 |
 | jbkk2_RNBP41D_5AD_32NLs_97XORs   |                  410.53 |
